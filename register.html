@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Portal | CognitoAttend</title>
+    <meta name="description"
+        content="Register your biometric profile for CognitoAttend. Secure self-service face registration portal with high-tech HUD and real-time validation.">
+    <meta name="keywords" content="biometric registration, face enrollment, CognitoAttend register, secure portal">
+    <link rel="canonical" href="https://cognitoattend.com/register.html">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Registration Portal | CognitoAttend">
+    <meta property="og:description" content="Securely register your biometric profile in seconds.">
+    <meta property="og:image" content="folder/cognito attend.png">
+
+    <!-- Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+
+        .reg-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .camera-box {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #111;
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            border: 3.5px solid rgba(16, 185, 129, 0.4);
+            margin-bottom: 25px;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .form-card {
+            background: rgba(15, 15, 15, 0.9);
+            padding: 30px;
+            border-radius: 32px;
+            border: 3.5px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #10b981;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            background: #1a1a1a;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            padding: 14px 18px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            border-color: #10b981;
+            background: #222;
+        }
+
+        .btn-register {
+            width: 100%;
+            background: #10b981;
+            color: #000;
+            border: none;
+            padding: 18px;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-register:disabled {
+            background: #222;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        #feedback {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        .success-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .success-icon {
+            font-size: 5rem;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+
+        @keyframes header-logo-pulse {
+
+            0%,
+            100% {
+                transform: scale(1) translateY(0);
+                filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.6));
+            }
+
+            50% {
+                transform: scale(1.05) translateY(-5px);
+                filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.4));
+            }
+        }
+
+        .error-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 3.5px solid rgba(239, 68, 68, 0.4);
+            border-radius: 24px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Biometric Preloader -->
+    <div id="preloader">
+        <div class="bio-scanner">
+            <div class="bio-fingerprint"></div>
+            <div class="bio-scan-line"></div>
+        </div>
+        <div class="bio-text">Biometric Scanning</div>
+        <div class="bio-status">Initializing CognitoAttend Systems...</div>
+    </div>
+
+    <script>
+        // Inline preloader dismissal for resilience
+        (function () {
+            const preloader = document.getElementById('preloader');
+            const startTime = Date.now();
+            function hide() {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, 3000 - elapsed);
+                setTimeout(() => {
+                    if (preloader) {
+                        preloader.classList.add('fade-out');
+                        setTimeout(() => preloader.style.display = 'none', 800);
+                    }
+                }, remaining);
+            }
+            if (document.readyState === 'complete') hide();
+            else window.addEventListener('load', hide);
+            setTimeout(hide, 5000);
+        })();
+    </script>
+
+    <div class="reg-container" id="reg-app">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <a href="index.html" class="btn-secondary btn-sm" style="text-decoration: none;">🏠 Home</a>
+            <img src="folder/cognito attend.png" alt="Logo"
+                style="width: 50px; height: auto; filter: drop-shadow(0 0 10px var(--accent));">
+            <div style="width: 70px;"></div> <!-- Spacer for balance -->
+        </div>
+        <div style="text-align: center; margin-bottom: 35px;">
+            <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 5px;">Biometric Scan</h1>
+            <p style="color: #888; font-size: 0.9rem;">Registering your secure profile for <span id="space-name-display"
+                    style="color: var(--accent); font-weight: 700;">Workspace</span></p>
+        </div>
+
+        <div class="camera-box">
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="overlay"></canvas>
+            <!-- Validity Timer -->
+            <div id="validity-timer"
+                style="position:absolute; top:15px; right:15px; background:rgba(0,0,0,0.7); padding:8px 12px; border-radius:10px; border:3.5px solid #10b981; font-family:'Outfit', sans-serif; font-weight:700; color:#10b981; font-size:0.8rem; z-index:20;">
+                SECURE LINK: <span id="timer-display">05:00</span>
+            </div>
+            <div id="loading-overlay"
+                style="position:absolute; inset:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; flex-direction:column; z-index:10;">
+                <div
+                    style="width:40px; height:40px; border:3px solid #10b981; border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite;">
+                </div>
+                <p style="margin-top:15px; font-size:0.8rem; color:#10b981;">Starting Camera...</p>
+            </div>
+        </div>
+
+        <div class="form-card" id="form-view">
+            <div class="input-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" placeholder="Enter your official name" autocomplete="off">
+            </div>
+            <div id="dynamic-fields">
+                <!-- Fields like Reg No, Course will be injected here -->
+            </div>
+            <div class="input-group">
+                <label for="gender">Gender</label>
+                <select id="gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="registration-actions"
+                style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                <button id="btn-snap" class="btn-register"
+                    style="background: var(--accent); color: #000; margin-top: 0;">📸 Capture & Register</button>
+                <button id="btn-gallery" class="btn-register"
+                    style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; margin-top: 0;">🖼️
+                    Upload from Gallery</button>
+                <input type="file" id="input-gallery" accept="image/*" style="display: none;">
+            </div>
+            <button id="btn-submit" class="btn-register" style="display: none;">Register Profile</button>
+            <div id="feedback">Initializing AI Models...</div>
+        </div>
+
+        <div class="success-screen" id="success-view">
+            <div class="success-icon">✓</div>
+            <h2 style="font-weight:800; margin-bottom:10px;">Registration Submitted</h2>
+            <p style="color:#888; line-height:1.6;">Your biometric profile is now pending admin approval. You will be
+                able to mark attendance once verified.</p>
+            <a href="index.html" class="btn-register"
+                style="display: block; text-decoration: none; margin-top: 30px;">Back to Home</a>
+        </div>
+
+        <div class="error-screen" id="error-view">
+            <div style="font-size: 4rem; color: #ef4444; margin-bottom: 20px;">⚠</div>
+            <h2 id="error-title" style="font-weight:800; margin-bottom:10px;">Invalid Link</h2>
+            <p id="error-message" style="color:#888; line-height:1.6; margin-bottom: 25px;">This registration link is
+                invalid or has expired.</p>
+            <a href="index.html" class="btn-register"
+                style="display: block; text-decoration: none; background: #333; color: #fff;">Back to Home</a>
+        </div>
+    </div>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const startTime = Date.now();
+
+        const CyberAudio = {
+            ctx: null,
+            init() {
+                if (this.ctx) return;
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.warn("Audio Context failed", e);
+                }
+            },
+            async play(freq, type, duration, vol = 0.1) {
+                this.init();
+                if (!this.ctx) return;
+                if (this.ctx.state === 'suspended') await this.ctx.resume();
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            },
+            playLock() { this.play(800, 'sine', 0.1, 0.05); },
+            playMatch() {
+                this.play(600, 'sine', 0.1, 0.05);
+                setTimeout(() => this.play(900, 'sine', 0.15, 0.05), 60);
+            },
+            playError() { this.play(150, 'square', 0.2, 0.03); }
+        };
+
+        let wasFaceDetected = false;
+
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('overlay');
+        const feedback = document.getElementById('feedback');
+        const btnSubmit = document.getElementById('btn-submit');
+        const inputName = document.getElementById('name');
+        const dynamicFields = document.getElementById('dynamic-fields');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const btnSnap = document.getElementById('btn-snap');
+        const btnGallery = document.getElementById('btn-gallery');
+        const inputGallery = document.getElementById('input-gallery');
+
+        const params = new URLSearchParams(window.location.search);
+        const spaceId = params.get('s');
+        const expiryTime = parseInt(params.get('exp'));
+
+        let lastDetection = null;
+        let isReady = false;
+        let workspaceConfig = null;
+        let timerInterval = null;
+
+        // Model loading
+        // Model URLs with fallback
+        const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+        const FALLBACK_MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+
+        function showError(title, message) {
+            document.getElementById('form-view').style.display = 'none';
+            document.querySelector('.camera-box').style.display = 'none';
+            const views = ['success-view', 'error-view'];
+            views.forEach(v => document.getElementById(v).style.display = 'none');
+
+            const errView = document.getElementById('error-view');
+            errView.style.display = 'block';
+            document.getElementById('error-title').innerText = title;
+            document.getElementById('error-message').innerText = message;
+            feedback.style.display = 'none';
+        }
+
+        function startTimer() {
+            if (!expiryTime) return;
+
+            const timerDisplay = document.getElementById('timer-display');
+            const validityTimer = document.getElementById('validity-timer');
+
+            const update = () => {
+                const now = Date.now();
+                const diff = expiryTime - now;
+
+                if (diff <= 0) {
+                    clearInterval(timerInterval);
+                    if (video.srcObject) {
+                        video.srcObject.getTracks().forEach(track => track.stop());
+                    }
+                    showError("Link Expired", "Your registration session has timed out for security. Please request a new link from your administrator.");
+                    return;
+                }
+
+                const mins = Math.floor(diff / 60000);
+                const secs = Math.floor((diff % 60000) / 1000);
+                timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                if (diff < 60000) { // Last minute warning
+                    validityTimer.style.borderColor = "#f59e0b";
+                    validityTimer.style.color = "#f59e0b";
+                }
+            };
+
+            update();
+            timerInterval = setInterval(update, 1000);
+        }
+
+        async function startPortal() {
+            try {
+                if (!spaceId || isNaN(expiryTime)) {
+                    showError("Invalid Parameters", "The registration link you used is missing critical identification tokens.");
+                    return;
+                }
+
+                if (Date.now() > expiryTime) {
+                    showError("Link Expired", "This registration link was only valid for 5 minutes and has now expired.");
+                    return;
+                }
+
+                startTimer();
+
+                // 1. Fetch Workspace Config
+                const spaceRef = doc(db, 'spaces', spaceId);
+                const spaceSnap = await getDoc(spaceRef);
+
+                if (!spaceSnap.exists()) {
+                    showError("Workspace Suspended", "The workspace associated with this link is no longer available.");
+                    return;
+                }
+                workspaceConfig = spaceSnap.data();
+                document.getElementById('space-name-display').innerText = workspaceConfig.name || "Workspace";
+                setupDynamicFields(workspaceConfig.config || {});
+
+                // 2. Start Camera and Load Models PARALLELLY
+                feedback.innerText = "Initializing Hardware & AI...";
+
+                const cameraPromise = (async () => {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                    video.srcObject = stream;
+                    await video.play();
+                    video.onloadedmetadata = () => {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                    };
+                    return true;
+                })();
+
+                const loadModel = async (url) => {
+                    try {
+                        await Promise.all([
+                            faceapi.nets.tinyFaceDetector.loadFromUri(url),
+                            faceapi.nets.faceLandmark68Net.loadFromUri(url),
+                            faceapi.nets.faceRecognitionNet.loadFromUri(url)
+                        ]);
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                };
+
+                const modelsPromise = (async () => {
+                    let ok = await loadModel(MODEL_URL);
+                    if (!ok) ok = await loadModel(FALLBACK_MODEL_URL);
+                    if (!ok) throw new Error("Could not load AI models from any source.");
+                    return true;
+                })();
+
+                // Wait for camera first so user sees feed immediately
+                await cameraPromise;
+                loadingOverlay.style.display = 'none';
+                feedback.innerText = "Camera Ready. Waiting for AI...";
+
+                // Then wait for models
+                await modelsPromise;
+
+                await signInAnonymously(auth);
+                feedback.innerText = "Ready to scan face";
+                feedback.style.color = "#10b981";
+                isReady = true;
+                requestAnimationFrame(processFrame);
+
+            } catch (err) {
+                console.error(err);
+                feedback.innerText = "Hardware error: " + err.message;
+                feedback.style.color = "#ef4444";
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        function setupDynamicFields(config) {
+            const fieldLabels = {
+                regNo: 'Registration Number',
+                course: 'Course / Department',
+                email: 'Email ID',
+                phone: 'Phone Number',
+                bloodGroup: 'Blood Group',
+                weight: 'Weight (kg)'
+            };
+            dynamicFields.innerHTML = '';
+
+            // Iterate over config keys
+            Object.keys(config).forEach(f => {
+                if (config[f] && fieldLabels[f]) {
+                    const group = document.createElement('div');
+                    group.className = 'input-group';
+                    group.innerHTML = `<label>${fieldLabels[f]}</label><input type="text" id="reg-${f}" placeholder="Enter ${fieldLabels[f]}">`;
+                    dynamicFields.appendChild(group);
+                }
+            });
+        }
+
+        async function processFrame() {
+            if (!isReady) return;
+
+            const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+            lastDetection = detection;
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (detection) {
+                const box = detection.detection.box;
+                drawHUD(ctx, box, inputName.value.trim());
+
+                if (!wasFaceDetected) {
+                    CyberAudio.playLock();
+                    wasFaceDetected = true;
+                }
+
+                btnSubmit.disabled = false;
+                feedback.innerText = "Face Locked";
+                feedback.style.color = "#22c55e";
+            } else {
+                wasFaceDetected = false;
+                btnSubmit.disabled = true;
+                feedback.innerText = "Move closer to camera";
+                feedback.style.color = "#10b981";
+            }
+
+            requestAnimationFrame(processFrame);
+        }
+
+        function drawHUD(ctx, box, name) {
+            const color = '#10b981';
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            const size = 30;
+            const pad = 10;
+            const { x, y, width: w, height: h } = box;
+
+            // Simple Corners
+            const drawC = (cx, cy, dx, dy) => {
+                ctx.beginPath();
+                ctx.moveTo(cx, cy + dy * size); ctx.lineTo(cx, cy); ctx.lineTo(cx + dx * size, cy);
+                ctx.stroke();
+            };
+            drawC(x - pad, y - pad, 1, 1); drawC(x + w + pad, y - pad, -1, 1);
+            drawC(x - pad, y + h + pad, 1, -1); drawC(x + w + pad, y + h + pad, -1, -1);
+
+            if (name) {
+                ctx.font = '900 14px Outfit';
+                const txt = `LINKING: ${name.toUpperCase()}`;
+                const tw = ctx.measureText(txt).width;
+                const px = x + w / 2 - (tw + 20) / 2;
+                const py = y - pad - 40;
+
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.roundRect(px, py, tw + 20, 26, 13); ctx.fill();
+                ctx.fillStyle = '#000'; ctx.fillText(txt, px + 10, py + 17);
+            }
+        }
+
+        btnSnap.onclick = async () => {
+            const name = inputName.value.trim();
+            if (!name) return alert("Please enter your name.");
+            if (!lastDetection) return alert("Please align your face with the camera.");
+
+            btnSnap.disabled = true;
+            feedback.innerText = "Saving profile...";
+
+            try {
+                const photoBase64 = captureFacePhoto(video, lastDetection.detection.box);
+                await processRegistration(name, lastDetection.descriptor, photoBase64);
+            } catch (err) {
+                alert(err.message);
+                btnSnap.disabled = false;
+                feedback.innerText = "Error: " + err.message;
+            }
+        };
+
+        function captureFacePhoto(source, box) {
+            try {
+                const canvas = document.createElement('canvas');
+                const buffer = 0.2; // 20% margin
+                const ctx = canvas.getContext('2d');
+                canvas.width = 150;
+                canvas.height = 150;
+
+                const { x, y, width, height } = box;
+                const bx = Math.max(0, x - width * buffer);
+                const by = Math.max(0, y - height * buffer);
+                const bw = width * (1 + buffer * 2);
+                const bh = height * (1 + buffer * 2);
+
+                ctx.drawImage(source, bx, by, bw, bh, 0, 0, 150, 150);
+                return canvas.toDataURL('image/jpeg', 0.8);
+            } catch (e) {
+                console.error("Capture Error:", e);
+                return null;
+            }
+        }
+
+        btnGallery.onclick = () => inputGallery.click();
+
+        inputGallery.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const name = inputName.value.trim();
+            if (!name) {
+                alert("Please enter your name first.");
+                e.target.value = '';
+                return;
+            }
+
+            feedback.innerText = "Processing Gallery Photo...";
+            feedback.style.color = "#10b981";
+
+            try {
+                const img = await faceapi.bufferToImage(file);
+                const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+
+                if (detection) {
+                    const photoBase64 = captureFacePhoto(img, detection.detection.box);
+                    await processRegistration(name, detection.descriptor, photoBase64);
+                } else {
+                    alert("No face detected in the uploaded photo. Please try another one.");
+                    feedback.innerText = "No face detected in upload";
+                    feedback.style.color = "#ef4444";
+                }
+            } catch (err) {
+                console.error("Upload Error:", err);
+                alert("Error processing image: " + err.message);
+                feedback.innerText = "Error processing upload";
+            }
+            e.target.value = '';
+        };
+
+        async function processRegistration(name, descriptor, photoBase64) {
+            // Check if name exists in space
+            const q = query(collection(db, 'users'), where("spaceId", "==", spaceId), where("name", "==", name));
+            const snap = await getDocs(q);
+            if (!snap.empty) throw new Error("This name is already registered in this workspace.");
+
+            const metadata = { gender: document.getElementById('gender').value };
+            const config = workspaceConfig.config || {};
+            Object.keys(config).forEach(f => {
+                if (config[f]) {
+                    const el = document.getElementById(`reg-${f}`);
+                    if (el) metadata[f] = el.value.trim();
+                }
+            });
+
+            await addDoc(collection(db, 'users'), {
+                spaceId: spaceId,
+                name: name,
+                ...metadata,
+                descriptor: Array.from(descriptor),
+                photo: photoBase64,
+                attendanceCount: 0,
+                lastAttendance: null,
+                approved: false, // Portals always require approval
+                createdAt: new Date().toISOString()
+            });
+
+            document.getElementById('form-view').style.display = 'none';
+            document.getElementById('success-view').style.display = 'block';
+            feedback.style.display = 'none';
+        }
+
+        startPortal();
+    </script>
+
+    <style>
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</body>
+
+</html>

@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Presence | CognitoAttend</title>
+    <meta name="description"
+        content="Securely mark your attendance using the CognitoAttend QR scanner. Fast, biometric-linked verification for authorized workspaces.">
+    <meta name="keywords" content="QR attendance, mark presence, CognitoAttend QR, biometric scanner">
+    <link rel="canonical" href="https://cognitoattend.com/qr.html">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="QR Presence | CognitoAttend">
+    <meta property="og:description" content="Scan and mark your attendance instantly.">
+    <meta property="og:image" content="folder/cognito attend.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        :root {
+            --primary: #fff;
+            --accent: #00f2ff;
+            --magenta: #ff00f2;
+            --bg: #000;
+            --text: #fff;
+            --text-muted: #888;
+            --success: #00f2ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            padding-bottom: 80px;
+            /* Space for bottom strip */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(15, 15, 15, 0.9);
+            padding: 30px 20px;
+            border-radius: 40px;
+            border: 4px solid rgba(0, 242, 255, 0.25);
+            box-shadow: 0 0 100px rgba(0, 242, 255, 0.1);
+            text-align: center;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            margin: auto;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px 16px;
+                border-radius: 32px;
+            }
+
+            h1 {
+                font-size: 1.6rem;
+            }
+
+            p {
+                font-size: 0.85rem;
+                margin-bottom: 20px;
+            }
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #fff, var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            margin-left: 5px;
+        }
+
+        input {
+            width: 100%;
+            background: #111;
+            border: 3px solid var(--border, rgba(255, 255, 255, 0.2));
+            padding: 16px 20px;
+            border-radius: 16px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+        }
+
+        button {
+            width: 100%;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 18px;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        button:disabled {
+            background: #222;
+            color: #444;
+            cursor: not-allowed;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+
+        .success {
+            color: var(--success);
+        }
+
+        .error {
+            color: #ef4444;
+        }
+
+        .header-logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .header-logo {
+            width: 80px;
+            height: auto;
+            filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.6));
+            animation: header-logo-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes header-logo-pulse {
+
+            0%,
+            100% {
+                transform: scale(1) translateY(0);
+                filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.6));
+            }
+
+            50% {
+                transform: scale(1.05) translateY(-5px);
+                filter: drop-shadow(0 0 25px rgba(255, 0, 242, 0.4));
+            }
+        }
+
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+
+            0%,
+            20% {
+                content: '.';
+            }
+
+            0%,
+            20% {
+                content: '.';
+            }
+
+            40% {
+                content: '..';
+            }
+
+            60% {
+                content: '...';
+            }
+
+            80%,
+            100% {
+                content: '';
+            }
+        }
+
+        .btn-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .btn-home:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent);
+        }
+
+
+        select {
+            width: 100%;
+            background: #111;
+            border: 3px solid var(--border, rgba(255, 255, 255, 0.2));
+            padding: 16px 20px;
+            border-radius: 16px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        #map-container {
+            width: 100%;
+            height: 200px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            border: 3.5px solid rgba(0, 242, 255, 0.4);
+            display: none;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            filter: brightness(0.6) contrast(1.2) sepia(100%) hue-rotate(140deg) saturate(3);
+        }
+
+        .precision-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            z-index: 1000;
+            border: 2.5px solid var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .map-scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            z-index: 1001;
+            box-shadow: 0 0 10px var(--accent);
+            animation: mapScan 4s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes mapScan {
+            0% {
+                top: 0;
+            }
+
+            100% {
+                top: 100%;
+            }
+        }
+
+        .radar-pulse {
+            width: 20px;
+            height: 20px;
+            background: rgba(0, 242, 255, 0.4);
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .radar-pulse::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            animation: radarPulse 2s ease-out infinite;
+        }
+
+        @keyframes radarPulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        @keyframes alertPulse {
+            0% {
+                opacity: 0.2;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 0.2;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="index.html" class="btn-home">🏠 Home</a>
+    <div class="container" id="app" role="main">
+        <div class="header-logo-container">
+            <img src="folder/cognito attend.png" alt="CognitoAttend Brand Logo" class="header-logo">
+        </div>
+        <h1>CognitoAttend</h1>
+        <p>Tactical Presence & Monitoring</p>
+
+
+
+        <div id="form-view">
+            <div id="dynamic-fields-container">
+                <div class="input-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" placeholder="Enter your full name" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="gender">Gender</label>
+                    <select id="gender">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="map-container">
+                <div id="map"></div>
+                <div class="map-scan-line"></div>
+                <div
+                    style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px); background-size: 100% 2px; z-index: 1000; opacity: 0.3;">
+                </div>
+                <div id="precision-stats" class="precision-badge">GPS: Calibrating...</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <button id="btn-submit" aria-label="Activate Presence">🚀 Activate CognitoAttend HUD</button>
+            </div>
+            <div id="status" aria-live="polite">Ready to link.</div>
+        </div>
+
+        <div id="success-view" style="display: none;">
+            <div style="font-size: 4rem; color: var(--success); margin-bottom: 20px;">⚡</div>
+            <h2 style="color: var(--success); margin-bottom: 10px;">Presence Session Active!</h2>
+            <p>Your biometric data is being securely verified. Keep this window open.</p>
+        </div>
+
+        <div id="error-view" style="display: none;">
+            <div style="font-size: 4rem; color: #ef4444; margin-bottom: 20px;">⚠</div>
+            <h2 id="error-title" style="color: #ef4444; margin-bottom: 10px;">Invalid Link</h2>
+            <p id="error-message">This session has expired or the link is invalid. Please scan the latest QR code from
+                the dashboard.</p>
+            <a href="index.html" class="btn-home"
+                style="position:static; display:inline-flex; width:auto; margin-top:20px;">🏠 Back to Home</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+
+
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                console.log("Authenticated as:", user.uid);
+            } else {
+                signInAnonymously(auth).catch(e => {
+                    console.error("Auth Fail:", e);
+                    showStatus("Connection Error: Authentication Failed", "error");
+                });
+            }
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const spaceId = params.get('s');
+        const nonce = params.get('n');
+        const expiryTime = params.get('exp');
+
+        const btnSubmit = document.getElementById('btn-submit');
+        const statusDiv = document.getElementById('status');
+        const formView = document.getElementById('form-view');
+        const successView = document.getElementById('success-view');
+        const dynamicFieldsContainer = document.getElementById('dynamic-fields-container');
+        const errorView = document.getElementById('error-view');
+
+
+
+        let isReady = false;
+        let currentSpaceData = null;
+        let deviceID = localStorage.getItem('cognito_device_id');
+        if (!deviceID) {
+            deviceID = 'dev_' + Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('cognito_device_id', deviceID);
+        }
+
+        let surveillanceActive = false;
+        let sessionStartTime = Date.now();
+
+        async function initSystem() {
+            try {
+                if (!spaceId || !nonce) {
+                    showErrorScreen("Missing Parameters", "This link is missing identification tokens. Please scan the QR code again.");
+                    return;
+                }
+
+                // 1. Strict Expiration Check
+                if (expiryTime && Date.now() > parseInt(expiryTime)) {
+                    showErrorScreen("Link Expired", "This QR code session has expired. The dashboard has likely generated a fresh one.");
+                    return;
+                }
+
+                // 2. Already Used Check
+                const usedNonces = JSON.parse(localStorage.getItem(`used_nonces_${spaceId}`) || '[]');
+                if (usedNonces.includes(nonce)) {
+                    formView.style.display = 'none';
+                    successView.style.display = 'block';
+                    const successTitle = successView.querySelector('h2');
+                    if (successTitle) successTitle.innerText = "Already Marked!";
+                    return;
+                }
+
+                showStatus("Verifying session...", "");
+                const spaceSnap = await getDoc(doc(db, 'spaces', spaceId));
+                if (!spaceSnap.exists()) {
+                    showErrorScreen("Invalid Workspace", "The workspace associated with this QR code no longer exists.");
+                    return;
+                }
+
+                currentSpaceData = spaceSnap.data();
+
+                updateFormFields(currentSpaceData.config);
+
+                isReady = true;
+                showStatus("Ready to submit.", "success");
+            } catch (err) {
+                console.error(err);
+                showStatus("Initialization error: " + err.message, "error");
+            }
+        }
+
+
+
+        function showErrorScreen(title, message) {
+            formView.style.display = 'none';
+            successView.style.display = 'none';
+            errorView.style.display = 'block';
+            document.getElementById('error-title').innerText = title;
+            document.getElementById('error-message').innerText = message;
+        }
+
+        function updateFormFields(config = {}) {
+            dynamicFieldsContainer.innerHTML = '';
+
+            // Always Name
+            addField('name', 'Your Name', 'text', 'Enter your full name');
+
+            // Configurable fields
+            if (config.regNo) addField('regNo', 'Registration Number', 'text', 'Enter registration number');
+            if (config.course) addField('course', 'Course / Department', 'text', 'Enter course or department');
+            if (config.email) addField('email', 'Email ID', 'email', 'Enter email address');
+            if (config.phone) addField('phone', 'Phone Number', 'text', 'Enter phone number');
+            if (config.bloodGroup) addField('bloodGroup', 'Blood Group', 'text', 'Enter blood group');
+            if (config.weight) addField('weight', 'Weight (kg)', 'text', 'Enter weight');
+
+            // Always Gender for voice customization
+            const genderGroup = document.createElement('div');
+            genderGroup.className = 'input-group';
+            genderGroup.innerHTML = `
+                <label for="gender">Gender</label>
+                <select id="gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            `;
+            dynamicFieldsContainer.appendChild(genderGroup);
+        }
+
+        function addField(id, label, type, placeholder) {
+            const group = document.createElement('div');
+            group.className = 'input-group';
+            group.innerHTML = `
+                <label for="${id}">${label}</label>
+                <input type="${type}" id="${id}" placeholder="${placeholder}" autocomplete="off">
+            `;
+            dynamicFieldsContainer.appendChild(group);
+        }
+
+
+
+        function speak(text, gender = 'male', voiceEnabled = false) {
+            if (!voiceEnabled) return;
+
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance(text);
+
+            const performSpeak = () => {
+                if (synth.speaking) return;
+                const voices = synth.getVoices();
+
+                let selectedVoice = null;
+                if (gender === 'female') {
+                    selectedVoice = voices.find(v => v.name.includes('Samantha') || v.name.includes('Google US English') || v.name.includes('Victoria') || v.name.includes('Female'));
+                    utterance.pitch = 1.1;
+                } else {
+                    selectedVoice = voices.find(v => v.name.includes('Alex') || v.name.includes('Google UK English Male') || v.name.includes('Daniel') || v.name.includes('Male'));
+                    utterance.pitch = 0.9;
+                }
+
+                if (selectedVoice) utterance.voice = selectedVoice;
+                synth.speak(utterance);
+            };
+
+            if (synth.getVoices().length === 0) {
+                synth.onvoiceschanged = performSpeak;
+            } else {
+                performSpeak();
+            }
+        }
+
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        async function getHighPrecisionLocation(maxWaitMs = 5000) {
+            return new Promise((resolve, reject) => {
+                let bestPos = null;
+                const startTime = Date.now();
+
+                const watchId = navigator.geolocation.watchPosition(
+                    (pos) => {
+                        const { latitude, longitude, accuracy } = pos.coords;
+                        console.log(`Sampling: ${accuracy}m accuracy`);
+
+                        if (!bestPos || accuracy < bestPos.coords.accuracy) {
+                            bestPos = pos;
+                            updateMapPreview(latitude, longitude, accuracy);
+                        }
+
+                        // If we reach excellent accuracy, stop early
+                        if (accuracy < 10) {
+                            navigator.geolocation.clearWatch(watchId);
+                            resolve(bestPos);
+                        }
+                    },
+                    (err) => {
+                        navigator.geolocation.clearWatch(watchId);
+                        reject(err);
+                    },
+                    { enableHighAccuracy: true, timeout: maxWaitMs }
+                );
+
+                setTimeout(() => {
+                    navigator.geolocation.clearWatch(watchId);
+                    if (bestPos) resolve(bestPos);
+                    else reject(new Error("Timeout getting location"));
+                }, maxWaitMs);
+            });
+        }
+
+        let leafletMap = null;
+        let userMarker = null;
+        let accuracyCircle = null;
+        let targetCircle = null;
+
+        function updateMapPreview(lat, lng, accuracy, targetLat = null, targetLng = null, targetRadius = null) {
+            const mapContainer = document.getElementById('map-container');
+            mapContainer.style.display = 'block';
+
+            if (!leafletMap) {
+                leafletMap = L.map('map', { zoomControl: false, attributionControl: false }).setView([lat, lng], 18);
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 19
+                }).addTo(leafletMap);
+            } else {
+                leafletMap.panTo([lat, lng]);
+            }
+
+            if (userMarker) leafletMap.removeLayer(userMarker);
+            if (accuracyCircle) leafletMap.removeLayer(accuracyCircle);
+
+            // Tactical Radar Pulse Marker
+            const radarIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div class="radar-pulse"></div>`,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+
+            userMarker = L.marker([lat, lng], { icon: radarIcon }).addTo(leafletMap);
+
+            accuracyCircle = L.circle([lat, lng], {
+                radius: accuracy,
+                color: "var(--accent)",
+                fillColor: "var(--accent)",
+                fillOpacity: 0.1,
+                weight: 1
+            }).addTo(leafletMap);
+
+            if (targetLat && !targetCircle) {
+                targetCircle = L.circle([targetLat, targetLng], {
+                    radius: targetRadius,
+                    color: "rgba(255, 255, 255, 0.4)",
+                    fillColor: "rgba(0, 242, 255, 0.05)",
+                    fillOpacity: 0.1,
+                    weight: 2,
+                    dashArray: '5, 10'
+                }).addTo(leafletMap);
+            }
+
+            const stats = document.getElementById('precision-stats');
+            stats.innerText = `TACTICAL LOCK: ±${accuracy.toFixed(1)}m`;
+            if (accuracy > 20) {
+                stats.style.color = "#ff4444";
+                stats.innerText += " (Weak Signal)";
+            } else {
+                stats.style.color = "var(--accent)";
+            }
+
+            leafletMap.invalidateSize();
+        }
+
+        async function submitAttendance() {
+            if (!isReady) return;
+
+            const nameInput = document.getElementById('name');
+            const name = nameInput ? nameInput.value.trim() : '';
+
+            if (!name) return showStatus("Please enter your name.", "error");
+            if (!spaceId || !nonce) return showStatus("Invalid CognitoAttend Link.", "error");
+
+            btnSubmit.disabled = true;
+            showStatus("Verifying Identity<span class=\"loading-dots\"></span>", "");
+
+            try {
+                // 1. Verify Space and Nonce
+                const spaceRef = doc(db, 'spaces', spaceId);
+                const spaceSnap = await getDoc(spaceRef);
+
+                if (!spaceSnap.exists()) throw new Error("Workspace not found.");
+                const spaceData = spaceSnap.data();
+                if (spaceData.qrNonce !== nonce) throw new Error("Link expired. Please scan again.");
+
+                // Check Geofencing
+                if (spaceData.geofencing && spaceData.geofencing.enabled && spaceData.geofencing.center) {
+                    showStatus("Calibrating High-Precision GPS...", "");
+                    const pos = await getHighPrecisionLocation(5000).catch(err => {
+                        throw new Error("Location access required. Please move to a clear area.");
+                    });
+
+                    const dist = getDistance(
+                        pos.coords.latitude, pos.coords.longitude,
+                        spaceData.geofencing.center.lat, spaceData.geofencing.center.lng
+                    );
+
+                    updateMapPreview(
+                        pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy,
+                        spaceData.geofencing.center.lat, spaceData.geofencing.center.lng,
+                        spaceData.geofencing.radius || 100
+                    );
+
+                    if (dist > (spaceData.geofencing.radius || 100)) {
+                        throw new Error(`Out of range. Move closer to the classroom.`);
+                    }
+                }
+
+                // Standard Mode: Process Attendance
+                await updateDoc(spaceRef, { qrScanCount: increment(1) });
+
+                const config = spaceData.config || {};
+                const gender = document.getElementById('gender').value;
+                const regNo = config.regNo ? document.getElementById('regNo').value.trim() : '';
+                const course = config.course ? document.getElementById('course').value.trim() : '';
+                const email = config.email ? document.getElementById('email').value.trim() : '';
+                const phone = config.phone ? document.getElementById('phone').value.trim() : '';
+                const bloodGroup = config.bloodGroup ? document.getElementById('bloodGroup').value.trim() : '';
+                const weight = config.weight ? document.getElementById('weight').value.trim() : '';
+
+                const q = query(collection(db, 'users'), where("spaceId", "==", spaceId), where("name", "==", name));
+                const userSnap = await getDocs(q);
+                const todayStr = new Date().toDateString();
+
+                if (!userSnap.empty) {
+                    const userDoc = userSnap.docs[0];
+                    const userData = userDoc.data();
+
+                    if (userData.lastAttendance === todayStr) {
+                        showStatus("Identity verified. Presence already logged.", "success");
+                        finishSubmit(name, gender, spaceData);
+                        return;
+                    }
+
+                    await updateDoc(doc(db, 'users', userDoc.id), {
+                        lastAttendance: todayStr,
+                        attendanceCount: increment(1),
+                        gender: gender,
+                        regNo: regNo || userData.regNo || '',
+                        course: course || userData.course || '',
+                        email: email || userData.email || '',
+                        phone: phone || userData.phone || '',
+                        bloodGroup: bloodGroup || userData.bloodGroup || '',
+                        weight: weight || userData.weight || ''
+                    });
+
+                    await recordAttendanceHistory(userDoc.id, name, regNo || userData.regNo || '', course || userData.course || '', gender);
+                } else {
+                    throw new Error("You are not registered. Please talk to an admin.");
+                }
+
+                finishSubmit(name, gender, spaceData);
+            } catch (err) {
+                showStatus(err.message, "error");
+                btnSubmit.disabled = false;
+            }
+        }
+
+        async function recordAttendanceHistory(userId, name, regNo, course, gender) {
+            const dateId = new Date().toISOString().split('T')[0];
+            await addDoc(collection(db, 'attendance'), {
+                spaceId: spaceId,
+                userId: userId,
+                name: name,
+                regNo: regNo,
+                course: course,
+                gender: gender,
+                date: dateId,
+                timestamp: new Date()
+            });
+            await updateDoc(doc(db, 'spaces', spaceId), {
+                [`historyDates.${dateId}`]: true
+            });
+        }
+
+        function finishSubmit(name, gender, spaceData) {
+            if (spaceData.config && spaceData.config.voiceEnabled) {
+                speak(`${name} present`, gender, true);
+            }
+
+            // Save this nonce as used on this device
+            try {
+                const usedNonces = JSON.parse(localStorage.getItem(`used_nonces_${spaceId}`) || '[]');
+                if (!usedNonces.includes(nonce)) {
+                    usedNonces.push(nonce);
+                    if (usedNonces.length > 10) usedNonces.shift();
+                    localStorage.setItem(`used_nonces_${spaceId}`, JSON.stringify(usedNonces));
+                }
+            } catch (e) {
+                console.error("Failed to save used nonce:", e);
+            }
+
+            formView.style.display = 'none';
+            successView.style.display = 'block';
+        }
+
+        function showStatus(msg, type) {
+            statusDiv.innerHTML = msg;
+            statusDiv.className = type;
+        }
+
+        btnSubmit.addEventListener('click', submitAttendance);
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') submitAttendance();
+        });
+
+        initSystem();
+    </script>
+</body>
