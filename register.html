@@ -302,6 +302,13 @@
                     <option value="other">Other</option>
                 </select>
             </div>
+            <div class="input-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 25px;">
+                <input type="checkbox" id="enable-biometric" style="width: 20px; height: 20px; cursor: pointer;"
+                    checked>
+                <label for="enable-biometric"
+                    style="margin-bottom: 0; cursor: pointer; text-transform: none; font-size: 0.9rem; color: #fff;">Enable
+                    Biometric (Fingerprint) Verification</label>
+            </div>
             <div class="registration-actions"
                 style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                 <button id="btn-snap" class="btn-register"
@@ -648,11 +655,23 @@
             if (!lastDetection) return alert("Please align your face with the camera.");
 
             btnSnap.disabled = true;
-            feedback.innerText = "Saving profile...";
+            feedback.innerText = "Processing...";
 
             try {
                 const photoBase64 = captureFacePhoto(video, lastDetection.detection.box);
-                await processRegistration(name, lastDetection.descriptor, photoBase64);
+                const isBiometricEnabled = document.getElementById('enable-biometric').checked;
+
+                if (isBiometricEnabled) {
+                    registrationData = {
+                        name,
+                        descriptor: lastDetection.descriptor,
+                        photo: photoBase64
+                    };
+                    showBiometricView();
+                } else {
+                    feedback.innerText = "Saving profile...";
+                    await processRegistration(name, lastDetection.descriptor, photoBase64);
+                }
             } catch (err) {
                 alert(err.message);
                 btnSnap.disabled = false;
@@ -704,13 +723,20 @@
 
                 if (detection) {
                     const photoBase64 = captureFacePhoto(img, detection.detection.box);
-                    // Instead of processing immediately, move to biometric step
-                    registrationData = {
-                        name,
-                        descriptor: detection.descriptor,
-                        photo: photoBase64
-                    };
-                    showBiometricView();
+                    const isBiometricEnabled = document.getElementById('enable-biometric').checked;
+
+                    if (isBiometricEnabled) {
+                        // Instead of processing immediately, move to biometric step
+                        registrationData = {
+                            name,
+                            descriptor: detection.descriptor,
+                            photo: photoBase64
+                        };
+                        showBiometricView();
+                    } else {
+                        feedback.innerText = "Saving profile...";
+                        await processRegistration(name, detection.descriptor, photoBase64);
+                    }
                 } else {
                     alert("No face detected in the uploaded photo. Please try another one.");
                     feedback.innerText = "No face detected in upload";
