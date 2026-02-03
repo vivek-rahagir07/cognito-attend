@@ -1,4 +1,4 @@
-// Import Firebase Modules (Modular SDK 11.6.1)
+// Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, updateDoc, doc, getDoc, onSnapshot, increment, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -6,7 +6,7 @@ import { firebaseConfig } from "./firebase-config.js";
 
 
 
-// --- PWA Service Worker Registration ---
+// PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
@@ -370,7 +370,7 @@ function enterSpace(id, data) {
     init3DFace('face-3d-container');
 }
 
-// QR Logic
+// QR
 async function startQRRotation() {
     if (!currentSpace) return;
     stopQRRotation();
@@ -781,13 +781,7 @@ if (btnExportHistory) {
     });
 }
 
-// ==========================================
-// 4. FACE API & CAMERA
-// ==========================================
-
-const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
-// Fallback URL if the primary one fails
-const FALLBACK_MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+// Models
 
 async function loadModels(url) {
     try {
@@ -852,8 +846,7 @@ async function initSystem() {
     }
 }
 
-// System initialization will be triggered when entering a space
-// initSystem();
+// Init
 
 function startVideo() {
     statusBadge.innerText = "Accessing Camera...";
@@ -922,7 +915,7 @@ function startVideo() {
 }
 
 
-// Space Config & Form
+// Config
 
 function updateRegistrationForm() {
     if (!currentSpace) return;
@@ -1158,7 +1151,7 @@ function updateConfigMapPreview(lat, lng, radius, accuracy = null) {
     configLeafletMap.invalidateSize();
 }
 
-// Database Listener
+// DB
 
 let unsubscribeUsers = null;
 
@@ -1578,7 +1571,7 @@ if (btnDeletePerson) {
     };
 }
 
-// Drawing Utils
+// Drawing
 
 function drawCustomFaceBox(ctx, box, label, isMatch, confidence, resultLabel) {
     const { x, y, width, height } = box;
@@ -1754,7 +1747,7 @@ function drawFaceMesh(ctx, landmarks, color = '#10b981') {
     ctx.globalAlpha = 1.0;
 }
 
-// Audio Engine
+// Audio
 const CyberAudio = {
     ctx: null,
     init() {
@@ -1795,7 +1788,7 @@ const CyberAudio = {
 
 let wasFaceDetected = false;
 
-// Main Loop
+// Main
 
 video.addEventListener('play', () => {
 
@@ -1884,7 +1877,7 @@ video.addEventListener('play', () => {
 
     detectionLoop();
 
-    // --- Drawing Loop (requestAnimationFrame) ---
+    // Animate
     function animate() {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2190,7 +2183,7 @@ async function unmarkAttendance(uid, name) {
     });
 }
 
-// Geofencing
+// Geo
 if (btnSetLocation) {
     btnSetLocation.addEventListener('click', () => {
         if (!navigator.geolocation) {
@@ -2233,7 +2226,7 @@ if (configGeoRadius) {
     });
 }
 
-// UI Handlers
+// UI
 
 document.getElementById('btn-mode-attend').addEventListener('click', () => setMode('attendance'));
 document.getElementById('btn-mode-reg').addEventListener('click', () => setMode('registration'));
@@ -2410,7 +2403,7 @@ async function exportToExcel() {
             csvContent += row.map(cell => `"${cell}"`).join(",") + "\n";
         });
 
-        // 5. Build CSV Summary Row (Daily Totals)
+        // Summary
         const summaryRow = ["DAILY TOTALS", "", "", "", "", ""];
         sortedDates.forEach(date => {
             summaryRow.push(dateTotals[date] || 0);
@@ -2469,7 +2462,7 @@ async function exportToPDF() {
         doc.text(`Workspace: ${currentSpace.name}`, 14, 30);
         doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 36);
 
-        // 4. Table Setup
+        // Table
         const tableHeaders = ["Name", "Reg No", "Course", "Present", "Pct", ...sortedDates.map(d => d.split('-').slice(1).reverse().join('/'))];
         const tableData = [];
 
@@ -2551,7 +2544,7 @@ async function exportHistoryToPDF() {
 
 setMode('attendance');
 
-// 3D Animation Section
+// 3D
 function init3DFace(containerId) {
     const container = document.getElementById(containerId);
     if (!container || container.dataset.initialized) return;
@@ -2707,7 +2700,7 @@ function init3DFace(containerId) {
     spotlight.position.set(10, 10, 10);
     scene3D.add(spotlight);
 
-    // --- Animation ---
+    // Animation
     let time = 0;
     function animate() {
         requestAnimationFrame(animate);

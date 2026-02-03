@@ -5,10 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Presence | CognitoAttend</title>
-    <meta name="description"
-        content="Securely mark your attendance using the CognitoAttend QR scanner. Fast, biometric-linked verification for authorized workspaces.">
-    <meta name="keywords" content="QR attendance, mark presence, CognitoAttend QR, biometric scanner">
-    <link rel="canonical" href="https://cognitoattend.com/qr.html">
+    <title>QR Presence</title>
 
     <!-- Open Graph -->
     <meta property="og:title" content="QR Presence | CognitoAttend">
@@ -757,7 +754,7 @@
             showStatus("Verifying Identity<span class=\"loading-dots\"></span>", "");
 
             try {
-                // 1. Verify Space and Nonce
+                // Auth
                 const spaceRef = doc(db, 'spaces', spaceId);
                 const spaceSnap = await getDoc(spaceRef);
 
@@ -765,7 +762,7 @@
                 const spaceData = spaceSnap.data();
                 if (spaceData.qrNonce !== nonce) throw new Error("Link expired. Please scan again.");
 
-                // Check Geofencing
+                // Geo
                 if (spaceData.geofencing && spaceData.geofencing.enabled && spaceData.geofencing.center) {
                     showStatus("Calibrating High-Precision GPS...", "");
                     const pos = await getHighPrecisionLocation(5000).catch(err => {
@@ -788,7 +785,7 @@
                     }
                 }
 
-                // Standard Mode: Process Attendance
+                // Attendance
                 await updateDoc(spaceRef, { qrScanCount: increment(1) });
 
                 const config = spaceData.config || {};
@@ -812,7 +809,7 @@
                         throw new Error("Your profile is pending approval. Please talk to an admin.");
                     }
 
-                    // Biometric Check
+                    // Match
                     const isBiometricEnabledByAdmin = spaceData.config && spaceData.config.biometricEnabled !== false;
                     if (isBiometricEnabledByAdmin && userData.biometric) {
                         showStatus("Touch Biometric Sensor to verify...", "");

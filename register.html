@@ -5,10 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration Portal | CognitoAttend</title>
-    <meta name="description"
-        content="Register your biometric profile for CognitoAttend. Secure self-service face registration portal with high-tech HUD and real-time validation.">
-    <meta name="keywords" content="biometric registration, face enrollment, CognitoAttend register, secure portal">
-    <link rel="canonical" href="https://cognitoattend.com/register.html">
+    <title>Registration Portal</title>
 
     <!-- Open Graph -->
     <meta property="og:title" content="Registration Portal | CognitoAttend">
@@ -236,7 +233,7 @@
     </div>
 
     <script>
-        // Inline preloader dismissal for resilience
+        // Preloader
         (function () {
             const preloader = document.getElementById('preloader');
             const startTime = Date.now();
@@ -361,7 +358,7 @@
         import { getFirestore, collection, addDoc, doc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { firebaseConfig } from "./firebase-config.js";
 
-        const startTime = Date.now();
+        // Setup
 
         const CyberAudio = {
             ctx: null,
@@ -433,8 +430,7 @@
         let workspaceConfig = null;
         let timerInterval = null;
 
-        // Model loading
-        // Model URLs with fallback
+        // Models
         const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
         const FALLBACK_MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
 
@@ -498,7 +494,7 @@
 
                 startTimer();
 
-                // 1. Fetch Workspace Config
+                // Config
                 const spaceRef = doc(db, 'spaces', spaceId);
                 const spaceSnap = await getDoc(spaceRef);
 
@@ -519,7 +515,7 @@
 
                 setupDynamicFields(workspaceConfig.config || {});
 
-                // 2. Start Camera and Load Models PARALLELLY
+                // Camera & AI
                 feedback.innerText = "Initializing Hardware & AI...";
 
                 const cameraPromise = (async () => {
@@ -798,7 +794,7 @@
             feedback.style.display = 'none';
         }
 
-        // --- Biometric Logic ---
+        // Bio
 
         function showBiometricView() {
             document.getElementById('form-view').style.display = 'none';
