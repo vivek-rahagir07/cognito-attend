@@ -508,6 +508,15 @@
                 }
                 workspaceConfig = spaceSnap.data();
                 document.getElementById('space-name-display').innerText = workspaceConfig.name || "Workspace";
+
+                // Check if biometrics are enabled by admin
+                const isBiometricEnabledByAdmin = workspaceConfig.config && workspaceConfig.config.biometricEnabled !== false;
+                const bioCheckboxGroup = document.getElementById('enable-biometric').parentElement;
+                if (!isBiometricEnabledByAdmin) {
+                    bioCheckboxGroup.style.display = 'none';
+                    document.getElementById('enable-biometric').checked = false;
+                }
+
                 setupDynamicFields(workspaceConfig.config || {});
 
                 // 2. Start Camera and Load Models PARALLELLY

@@ -339,10 +339,10 @@ async function handleCreate() {
             name: name,
             password: password,
             createdAt: new Date(),
-            config: { regNo: true, course: true, phone: false }
+            config: { regNo: true, course: true, phone: false, voiceEnabled: true, biometricEnabled: true }
         });
 
-        enterSpace(docRef.id, { name, password, config: { regNo: true, course: true, phone: false } });
+        enterSpace(docRef.id, { name, password, config: { regNo: true, course: true, phone: false, voiceEnabled: true, biometricEnabled: true } });
     } catch (err) {
         portalError.innerText = "Create Error: " + err.message;
         btnPortalCreate.innerText = originalText;
@@ -1082,7 +1082,12 @@ function syncConfigToggles() {
     if (!currentSpace) return;
     const config = currentSpace.config || {};
     document.querySelectorAll('.field-toggle').forEach(el => {
-        el.checked = !!config[el.dataset.field];
+        const field = el.dataset.field;
+        if (field === 'biometricEnabled' || field === 'voiceEnabled') {
+            el.checked = config[field] !== false;
+        } else {
+            el.checked = !!config[field];
+        }
     });
 
     const gf = currentSpace.geofencing || {};

@@ -808,8 +808,13 @@
                     const userDoc = userSnap.docs[0];
                     const userData = userDoc.data();
 
+                    if (userData.approved === false) {
+                        throw new Error("Your profile is pending approval. Please talk to an admin.");
+                    }
+
                     // Biometric Check
-                    if (userData.biometric) {
+                    const isBiometricEnabledByAdmin = spaceData.config && spaceData.config.biometricEnabled !== false;
+                    if (isBiometricEnabledByAdmin && userData.biometric) {
                         showStatus("Touch Biometric Sensor to verify...", "");
                         await verifyBiometric(userData.biometric);
                     }
