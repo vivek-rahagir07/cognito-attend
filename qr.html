@@ -604,6 +604,35 @@
             }
         }
 
+        async function verifyBiometric(biometric) {
+            if (!window.PublicKeyCredential) {
+                throw new Error("Biometric authentication not supported on this device.");
+            }
+
+            try {
+                const idBuffer = Uint8Array.from(atob(biometric.id), c => c.charCodeAt(0));
+                const challenge = new Uint8Array(32);
+                window.crypto.getRandomValues(challenge);
+
+                const publicKeyCredentialRequestOptions = {
+                    challenge: challenge,
+                    allowCredentials: [{
+                        id: idBuffer,
+                        type: 'public-key',
+                    }],
+                    userVerification: 'required',
+                };
+
+                const assertion = await navigator.credentials.get({
+                    publicKey: publicKeyCredentialRequestOptions
+                });
+                return !!assertion;
+            } catch (err) {
+                console.error("Biometric verification failed:", err);
+                throw new Error("Biometric not matched");
+            }
+        }
+
         function getDistance(lat1, lon1, lat2, lon2) {
             const R = 6371e3;
             const φ1 = lat1 * Math.PI / 180;
@@ -778,6 +807,12 @@
                 if (!userSnap.empty) {
                     const userDoc = userSnap.docs[0];
                     const userData = userDoc.data();
+
+                    // Biometric Check
+                    if (userData.biometric) {
+                        showStatus("Touch Biometric Sensor to verify...", "");
+                        await verifyBiometric(userData.biometric);
+                    }
 
                     if (userData.lastAttendance === todayStr) {
                         showStatus("Identity verified. Presence already logged.", "success");
