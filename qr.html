@@ -409,6 +409,8 @@
 
             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
                 <button id="btn-submit" aria-label="Activate Presence">🚀 Activate CognitoAttend HUD</button>
+                <button id="btn-biometric" style="display: none; background: #10b981; color: #000;">🛡️ Verify Biometric
+                    Identity</button>
             </div>
             <div id="status" aria-live="polite">Ready to link.</div>
         </div>
@@ -833,13 +835,26 @@
 
                     // MATCH FOUND -> CHECK BIOMETRIC
                     const isBiometricEnabledByAdmin = spaceData.config && spaceData.config.biometricEnabled !== false;
-                    if (isBiometricEnabledByAdmin && userData.biometric && isBiometricHardwareReady) {
+                    if (isBiometricEnabledByAdmin && userData.biometric) {
+                        if (!isBiometricHardwareReady) {
+                            // Re-check just in case, some browsers might need a gesture or it was a transient failure
+                            try {
+                                if (window.isSecureContext && window.PublicKeyCredential) {
+                                    isBiometricHardwareReady = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+                                }
+                            } catch (e) { }
+                        }
+
+                        if (!isBiometricHardwareReady) {
+                            throw new Error("Biometric hardware not detected or unsupported. This workspace requires biometric verification.");
+                        }
+
                         btnSubmit.style.display = 'none';
                         btnBiometric.style.display = 'block';
-                        showStatus("Face Identity Verified. Final Step: Biometric confirmation required.", "");
+                        showStatus("Identity Matched. Final Step: Biometric confirmation required.", "");
 
                         // Wait for user to click the biometric button to ensure a fresh gesture context
-                        const result = await new Promise((resolve) => {
+                        const result = await new Promise((resolve, reject) => {
                             btnBiometric.onclick = async () => {
                                 try {
                                     btnBiometric.disabled = true;
@@ -849,6 +864,7 @@
                                 } catch (e) {
                                     showStatus(e.message, "error");
                                     btnBiometric.disabled = false;
+                                    // Don't reject here, let the user try again
                                 }
                             };
                         });
