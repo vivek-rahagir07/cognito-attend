@@ -838,8 +838,45 @@ input:focus {
         0 0 150px rgba(255, 0, 242, 0.05);
     will-change: filter, transform;
     animation:
-        fadeInPortal 1s ease-out forwards,
-        multi-glow 10s linear infinite;
+        cyberJumpEntrance 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+        multi-glow 10s linear infinite,
+        containerJump 4s ease-in-out infinite 1.2s;
+}
+
+@keyframes cyberJumpEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(100px) scale(0.8) rotateX(20deg);
+        filter: blur(20px) brightness(2);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1.05) rotateX(-5deg);
+        filter: blur(0) brightness(1.2);
+    }
+    80% {
+        transform: translateY(5px) scale(0.98) rotateX(2deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotateX(0);
+        filter: blur(0) brightness(1);
+    }
+}
+
+@keyframes containerJump {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-15px) rotate(0.5deg);
+    }
+    50% {
+        transform: translateY(0) rotate(0deg);
+    }
+    75% {
+        transform: translateY(-8px) rotate(-0.5deg);
+    }
 }
 
 @keyframes multi-glow {
