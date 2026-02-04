@@ -796,11 +796,39 @@
 
         // Bio
 
-        function showBiometricView() {
-            document.getElementById('form-view').style.display = 'none';
-            document.querySelector('.camera-box').style.display = 'none';
-            biometricView.style.display = 'block';
-            feedback.innerText = "Face Captured. Step 2: Biometric Scan";
+        async function checkWebAuthnSupport() {
+            if (!window.isSecureContext) {
+                throw new Error("Biometric security requires a SECURE CONNECTION (HTTPS). Please ensure you are using an https:// link.");
+            }
+            if (!window.PublicKeyCredential) {
+                throw new Error("Your browser or device does not support biometric (WebAuthn) credentials.");
+            }
+            const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+            if (!available) {
+                throw new Error("No biometric hardware (fingerprint/face) was detected or is available on this device.");
+            }
+            return true;
+        }
+
+        async function showBiometricView() {
+            biometricFeedback.innerText = "Checking biometric compatibility...";
+            biometricFeedback.style.color = "#888";
+
+            try {
+                await checkWebAuthnSupport();
+                document.getElementById('form-view').style.display = 'none';
+                document.querySelector('.camera-box').style.display = 'none';
+                biometricView.style.display = 'block';
+                feedback.innerText = "Face Captured. Step 2: Biometric Scan";
+                biometricFeedback.innerText = "Secure environment verified. Ready to scan.";
+                biometricFeedback.style.color = "#10b981";
+            } catch (err) {
+                console.error("WebAuthn Support Error:", err);
+                alert(err.message);
+                feedback.innerText = "Biometric Setup Failed";
+                feedback.style.color = "#ef4444";
+                btnSnap.disabled = false;
+            }
         }
 
         btnStartBiometric.onclick = async () => {
@@ -808,8 +836,12 @@
 
             btnStartBiometric.disabled = true;
             biometricFeedback.innerText = "Initializing secure biometric prompt...";
+            biometricFeedback.style.color = "#10b981";
 
             try {
+                // Final check before proceeding
+                await checkWebAuthnSupport();
+
                 // Generate a random challenge
                 const challenge = new Uint8Array(32);
                 window.crypto.getRandomValues(challenge);
@@ -830,13 +862,16 @@
                     },
                     pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
                     authenticatorSelection: {
-                        authenticatorAttachment: "platform",
-                        userVerification: "preferred"
+                        authenticatorAttachment: "platform", // Keep platform for biometric specificity
+                        userVerification: "required", // Require biometric/PIN
+                        residentKey: "preferred",
+                        requireResidentKey: false
                     },
                     timeout: 60000,
                     attestation: "none"
                 };
 
+                console.log("Creating credential with options:", publicKeyCredentialCreationOptions);
                 const credential = await navigator.credentials.create({
                     publicKey: publicKeyCredentialCreationOptions
                 });
@@ -848,15 +883,26 @@
                     // Store credential ID and basic info
                     registrationData.biometric = {
                         credentialId: credential.id,
-                        type: "right_thumb",
+                        type: "platform_hardware", // Generalized to platform hardware
                         timestamp: new Date().toISOString()
                     };
 
                     await processRegistration(registrationData.name, registrationData.descriptor, registrationData.photo);
                 }
             } catch (err) {
-                console.error("Biometric Error:", err);
-                biometricFeedback.innerText = "Error: " + err.message + ". Please try again.";
+                console.error("Biometric Error Flow:", err);
+                let errorMsg = err.message;
+
+                // Specific error handling for user cancels or common failures
+                if (err.name === 'NotAllowedError') {
+                    errorMsg = "Registration cancelled or timed out.";
+                } else if (err.name === 'NotSupportedError') {
+                    errorMsg = "The device configuration is not supported for biometrics.";
+                } else if (!window.isSecureContext) {
+                    errorMsg = "Biometrics require an HTTPS connection. Insecure context detected.";
+                }
+
+                biometricFeedback.innerText = "Error: " + errorMsg + " Please try again.";
                 biometricFeedback.style.color = "#ef4444";
                 btnStartBiometric.disabled = false;
             }

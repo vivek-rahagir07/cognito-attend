@@ -602,11 +602,20 @@
         }
 
         async function verifyBiometric(biometric) {
+            if (!window.isSecureContext) {
+                throw new Error("Biometric verification requires a SECURE CONNECTION (HTTPS).");
+            }
             if (!window.PublicKeyCredential) {
-                throw new Error("Biometric authentication not supported on this device.");
+                throw new Error("Biometric authentication not supported on this device/browser.");
             }
 
             try {
+                // check for platform authenticator
+                const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+                if (!available) {
+                    throw new Error("No biometric hardware detected on this device.");
+                }
+
                 // Decode base64url if needed, or use directly if stored as string ID
                 const idBuffer = Uint8Array.from(atob(biometric.credentialId.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
                 const challenge = new Uint8Array(32);
@@ -618,7 +627,7 @@
                         id: idBuffer,
                         type: 'public-key',
                     }],
-                    userVerification: 'preferred',
+                    userVerification: 'required', // Match the registration requirement
                 };
 
                 const assertion = await navigator.credentials.get({
@@ -626,8 +635,11 @@
                 });
                 return !!assertion;
             } catch (err) {
-                console.error("Biometric verification failed:", err);
-                throw new Error("Biometric verification failed or cancelled. Please try again.");
+                console.error("Biometric verification failure:", err);
+                if (err.name === 'NotAllowedError') {
+                    throw new Error("Verification cancelled or timed out.");
+                }
+                throw new Error("Biometric verification failed: " + err.message);
             }
         }
 
