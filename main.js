@@ -8,6 +8,34 @@ import { firebaseConfig } from "./firebase-config.js";
 
 // PWA
 if ('serviceWorker' in navigator) {
+    // Digital ID Card Logic
+    function showIdCard(userData) {
+        idCardName.textContent = userData.name || 'Student';
+        idCardReg.textContent = userData.regNo || 'REG_HIDDEN';
+        idCardCourse.textContent = userData.course || 'COGNITO_MEMBER';
+        idCardPhoto.src = userData.photo || 'folder/placeholder.png';
+
+        // Generate QR for back side
+        idCardQrContent.innerHTML = '';
+        const qrData = JSON.stringify({
+            n: userData.name,
+            r: userData.regNo,
+            t: new Date().toISOString()
+        });
+        new QRCode(idCardQrContent, {
+            text: qrData,
+            width: 128,
+            height: 128,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        idCardModal.classList.remove('hidden');
+        idCardScene.classList.remove('is-flipped');
+    }
+
+    // Initializers
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
             .then(reg => console.log('SW Registered', reg))
@@ -66,6 +94,15 @@ const regForm = document.getElementById('reg-form');
 const btnHistory = document.getElementById('btn-history');
 const historyModal = document.getElementById('history-modal');
 const btnCloseHistory = document.getElementById('btn-close-history');
+const idCardModal = document.getElementById('id-card-modal');
+const btnCloseIdCard = document.getElementById('btn-close-id-card');
+const idCardScene = document.getElementById('id-card-scene');
+const btnSaveWallet = document.getElementById('btn-save-wallet');
+const idCardPhoto = document.getElementById('id-card-photo');
+const idCardName = document.getElementById('id-card-name');
+const idCardReg = document.getElementById('id-card-reg');
+const idCardCourse = document.getElementById('id-card-course');
+const idCardQrContent = document.getElementById('id-card-qr');
 const historyDateSelector = document.getElementById('history-date-selector');
 const historyTableBody = document.getElementById('history-table-body');
 const historyStatus = document.getElementById('history-status');
@@ -178,7 +215,7 @@ let configMarker = null;
 let configRadiusCircle = null;
 
 // Device Detection for Performance
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isMobile = /Android|webOS|iPhone|iPad|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const DETECTION_INTERVAL = isMobile ? 250 : 100;
 
 let hourlyChart = null;
@@ -455,6 +492,24 @@ async function startQRRotation() {
         }
     });
 
+    // ID Card Events
+    btnCloseIdCard.addEventListener('click', () => {
+        idCardModal.classList.add('hidden');
+    });
+
+    idCardScene.addEventListener('click', () => {
+        idCardScene.classList.toggle('is-flipped');
+    });
+
+    btnSaveWallet.addEventListener('click', () => {
+        if ('BeforeInstallPromptEvent' in window) {
+            showToast('Ready for Wallet Integration (PWA)', 'success');
+        } else {
+            showToast('Pin to Home Screen to save to Wallet', 'info');
+        }
+    });
+
+    // Close logic
     // Store unsubscribe to clean up later
     qrModal._unsubscribe = unsubscribeQr;
 }
@@ -2108,8 +2163,10 @@ async function markAttendance(name) {
         attendanceCooldowns[name] = now;
 
         if (navigator.vibrate) navigator.vibrate(100);
-        CyberAudio.playMatch();
-        showToast(`Attendance marked: ${name}`);
+        showToast(`Attendance marked: ${name}`, 'success');
+
+        // Trigger Digital ID Card
+        showIdCard(userData);
 
         // Live log already added above
 
