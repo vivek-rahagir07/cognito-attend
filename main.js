@@ -97,6 +97,9 @@ let lastAbsentHTML = '';
 
 const smoothBoxes = {};
 
+const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+const FALLBACK_MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+
 const LERP_FACTOR = 0.4;
 
 const qrModal = document.getElementById('qr-modal');
@@ -851,12 +854,12 @@ async function initSystem() {
 function startVideo() {
     statusBadge.innerText = "Accessing Camera...";
 
+    // Simplified constraints for better compatibility
     const constraints = {
         video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            aspectRatio: 1.777777778,
-            facingMode: "user"
+            facingMode: "user",
+            width: { ideal: isMobile ? 640 : 1280 },
+            height: { ideal: isMobile ? 480 : 720 }
         }
     };
 
@@ -886,6 +889,7 @@ function startVideo() {
                     const startBtn = document.createElement('button');
                     startBtn.innerText = "Start Camera";
                     startBtn.className = "btn-primary";
+                    startBtn.style.marginTop = "15px";
                     startBtn.onclick = () => {
                         video.play();
                         loadingOverlay.style.display = "none";
@@ -897,19 +901,32 @@ function startVideo() {
         })
         .catch(err => {
             console.error("Camera Error:", err);
-            loadingText.innerHTML = "Camera Access Denied <br><small>Please enable camera in your browser settings.</small>";
+            loadingText.innerHTML = `<span style="color:#ef4444; font-weight:800;">Hardware Error</span><br><small>${err.message}</small>`;
             statusBadge.innerText = "Camera Error";
             statusBadge.className = "status-badge status-error";
 
             // Show overlay with error color
-            loadingOverlay.style.background = "rgba(120, 0, 0, 0.9)";
+            loadingOverlay.style.background = "rgba(10, 0, 0, 0.9)";
+
+            // Add a retry button
+            const retryBtn = document.createElement('button');
+            retryBtn.innerText = "Retry Camera Access";
+            retryBtn.className = "btn-primary";
+            retryBtn.style.marginTop = "15px";
+            retryBtn.onclick = () => startVideo();
 
             // Add a troubleshooting button
             const helpBtn = document.createElement('button');
-            helpBtn.innerText = "How to fix?";
+            helpBtn.innerText = "Troubleshoot Guide";
             helpBtn.className = "btn-secondary";
             helpBtn.style.marginTop = "10px";
             helpBtn.onclick = () => alert("1. Click the lock icon in the address bar.\n2. Ensure Camera is set to 'Allow'.\n3. Refresh the page.");
+
+            // Clear old buttons if any
+            const existingBtns = loadingOverlay.querySelectorAll('button');
+            existingBtns.forEach(b => b.remove());
+
+            loadingOverlay.appendChild(retryBtn);
             loadingOverlay.appendChild(helpBtn);
         });
 }

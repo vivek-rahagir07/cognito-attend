@@ -276,10 +276,17 @@
             </div>
             <div id="loading-overlay"
                 style="position:absolute; inset:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; flex-direction:column; z-index:10;">
-                <div
+                <div id="loading-spinner"
                     style="width:40px; height:40px; border:3px solid #10b981; border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite;">
                 </div>
-                <p style="margin-top:15px; font-size:0.8rem; color:#10b981;">Starting Camera...</p>
+                <p id="loading-text" style="margin-top:15px; font-size:0.8rem; color:#10b981;">Starting Camera...</p>
+                <div id="camera-retry-ui" style="display: none; text-align: center; padding: 20px;">
+                    <div style="font-size: 2.5rem; color: #ef4444; margin-bottom: 15px;">📷</div>
+                    <p style="color: #fff; font-size: 0.9rem; margin-bottom: 20px;">Camera access is required for
+                        registration.</p>
+                    <button id="btn-retry-camera" class="btn-register"
+                        style="padding: 12px 25px; width: auto; font-size: 0.9rem;">Allow Camera Access</button>
+                </div>
             </div>
         </div>
 
@@ -412,6 +419,10 @@
         const inputName = document.getElementById('name');
         const dynamicFields = document.getElementById('dynamic-fields');
         const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const loadingText = document.getElementById('loading-text');
+        const cameraRetryUI = document.getElementById('camera-retry-ui');
+        const btnRetryCamera = document.getElementById('btn-retry-camera');
         const btnSnap = document.getElementById('btn-snap');
         const btnGallery = document.getElementById('btn-gallery');
         const inputGallery = document.getElementById('input-gallery');
@@ -480,6 +491,38 @@
             timerInterval = setInterval(update, 1000);
         }
 
+        async function initCamera() {
+            try {
+                loadingOverlay.style.display = 'flex';
+                loadingSpinner.style.display = 'block';
+                loadingText.style.display = 'block';
+                loadingText.innerText = "Requesting Camera Access...";
+                cameraRetryUI.style.display = 'none';
+
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                video.srcObject = stream;
+                await video.play();
+                video.onloadedmetadata = () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                };
+                loadingOverlay.style.display = 'none';
+                return true;
+            } catch (err) {
+                console.error("Camera Error:", err);
+                loadingSpinner.style.display = 'none';
+                loadingText.style.display = 'none';
+                cameraRetryUI.style.display = 'block';
+                feedback.innerText = "Camera Access Denied";
+                feedback.style.color = "#ef4444";
+                return false;
+            }
+        }
+
+        btnRetryCamera.onclick = () => initCamera().then(ok => {
+            if (ok && isReady) requestAnimationFrame(processFrame);
+        });
+
         async function startPortal() {
             try {
                 if (!spaceId || isNaN(expiryTime)) {
@@ -518,54 +561,40 @@
                 // Camera & AI
                 feedback.innerText = "Initializing Hardware & AI...";
 
-                const cameraPromise = (async () => {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-                    video.srcObject = stream;
-                    await video.play();
-                    video.onloadedmetadata = () => {
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                    };
-                    return true;
-                })();
-
-                const loadModel = async (url) => {
-                    try {
-                        await Promise.all([
-                            faceapi.nets.tinyFaceDetector.loadFromUri(url),
-                            faceapi.nets.faceLandmark68Net.loadFromUri(url),
-                            faceapi.nets.faceRecognitionNet.loadFromUri(url)
-                        ]);
-                        return true;
-                    } catch (e) {
-                        return false;
-                    }
-                };
-
                 const modelsPromise = (async () => {
+                    const loadModel = async (url) => {
+                        try {
+                            await Promise.all([
+                                faceapi.nets.tinyFaceDetector.loadFromUri(url),
+                                faceapi.nets.faceLandmark68Net.loadFromUri(url),
+                                faceapi.nets.faceRecognitionNet.loadFromUri(url)
+                            ]);
+                            return true;
+                        } catch (e) {
+                            return false;
+                        }
+                    };
                     let ok = await loadModel(MODEL_URL);
                     if (!ok) ok = await loadModel(FALLBACK_MODEL_URL);
                     if (!ok) throw new Error("Could not load AI models from any source.");
                     return true;
                 })();
 
-                // Wait for camera first so user sees feed immediately
-                await cameraPromise;
-                loadingOverlay.style.display = 'none';
-                feedback.innerText = "Camera Ready. Waiting for AI...";
+                // Initialize camera
+                const cameraOk = await initCamera();
 
                 // Then wait for models
                 await modelsPromise;
 
                 await signInAnonymously(auth);
-                feedback.innerText = "Ready to scan face";
-                feedback.style.color = "#10b981";
+                feedback.innerText = cameraOk ? "Ready to scan face" : "Camera Access Required";
+                feedback.style.color = cameraOk ? "#10b981" : "#ef4444";
                 isReady = true;
-                requestAnimationFrame(processFrame);
+                if (cameraOk) requestAnimationFrame(processFrame);
 
             } catch (err) {
                 console.error(err);
-                feedback.innerText = "Hardware error: " + err.message;
+                feedback.innerText = "System error: " + err.message;
                 feedback.style.color = "#ef4444";
                 loadingOverlay.style.display = 'none';
             }
