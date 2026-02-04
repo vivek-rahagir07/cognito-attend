@@ -409,16 +409,14 @@
 
             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
                 <button id="btn-submit" aria-label="Activate Presence">🚀 Activate CognitoAttend HUD</button>
-                <button id="btn-biometric" style="display: none; background: #10b981; color: #000;">🛡️ Verify Biometric
-                    Identity</button>
             </div>
             <div id="status" aria-live="polite">Ready to link.</div>
         </div>
 
         <div id="success-view" style="display: none;">
             <div style="font-size: 4rem; color: var(--success); margin-bottom: 20px;">⚡</div>
-            <h2 style="color: var(--success); margin-bottom: 10px;">Presence Session Active!</h2>
-            <p>Your biometric data is being securely verified. Keep this window open.</p>
+            <h2 style="color: var(--success); margin-bottom: 10px;">Attendance Marked!</h2>
+            <p>Your attendance has been securely logged.</p>
         </div>
 
         <div id="error-view" style="display: none;">
@@ -463,15 +461,15 @@
         const expiryTime = params.get('exp');
 
         const btnSubmit = document.getElementById('btn-submit');
-        const btnBiometric = document.getElementById('btn-biometric');
         const statusDiv = document.getElementById('status');
         const formView = document.getElementById('form-view');
         const successView = document.getElementById('success-view');
         const dynamicFieldsContainer = document.getElementById('dynamic-fields-container');
         const errorView = document.getElementById('error-view');
 
+
+
         let isReady = false;
-        let isBiometricHardwareReady = false;
         let currentSpaceData = null;
         let deviceID = localStorage.getItem('cognito_device_id');
         if (!deviceID) {
@@ -484,15 +482,6 @@
 
         async function initSystem() {
             try {
-                // Initialize biometric check
-                try {
-                    if (window.isSecureContext && window.PublicKeyCredential) {
-                        isBiometricHardwareReady = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-                    }
-                } catch (e) {
-                    console.warn("Biometric check failed:", e);
-                }
-
                 if (!spaceId || !nonce) {
                     showErrorScreen("Missing Parameters", "This link is missing identification tokens. Please scan the QR code again.");
                     return;
@@ -612,47 +601,7 @@
             }
         }
 
-        async function verifyBiometric(biometric) {
-            if (!window.isSecureContext) {
-                throw new Error("Biometric verification requires a SECURE CONNECTION (HTTPS).");
-            }
-            if (!window.PublicKeyCredential) {
-                throw new Error("Biometric authentication not supported on this device/browser.");
-            }
 
-            try {
-                // check for platform authenticator
-                const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-                if (!available) {
-                    throw new Error("No biometric hardware detected on this device.");
-                }
-
-                // Decode base64url if needed, or use directly if stored as string ID
-                const idBuffer = Uint8Array.from(atob(biometric.credentialId.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-                const challenge = new Uint8Array(32);
-                window.crypto.getRandomValues(challenge);
-
-                const publicKeyCredentialRequestOptions = {
-                    challenge: challenge,
-                    allowCredentials: [{
-                        id: idBuffer,
-                        type: 'public-key',
-                    }],
-                    userVerification: 'required', // Match the registration requirement
-                };
-
-                const assertion = await navigator.credentials.get({
-                    publicKey: publicKeyCredentialRequestOptions
-                });
-                return !!assertion;
-            } catch (err) {
-                console.error("Biometric verification failure:", err);
-                if (err.name === 'NotAllowedError') {
-                    throw new Error("Verification cancelled or timed out.");
-                }
-                throw new Error("Biometric verification failed: " + err.message);
-            }
-        }
 
         function getDistance(lat1, lon1, lat2, lon2) {
             const R = 6371e3;
@@ -833,47 +782,8 @@
                         throw new Error("Your profile is pending approval. Please talk to an admin.");
                     }
 
-                    // MATCH FOUND -> CHECK BIOMETRIC
-                    const isBiometricEnabledByAdmin = spaceData.config && spaceData.config.biometricEnabled !== false;
-                    if (isBiometricEnabledByAdmin && userData.biometric) {
-                        if (!isBiometricHardwareReady) {
-                            // Re-check just in case, some browsers might need a gesture or it was a transient failure
-                            try {
-                                if (window.isSecureContext && window.PublicKeyCredential) {
-                                    isBiometricHardwareReady = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-                                }
-                            } catch (e) { }
-                        }
-
-                        if (!isBiometricHardwareReady) {
-                            throw new Error("Biometric hardware not detected or unsupported. This workspace requires biometric verification.");
-                        }
-
-                        btnSubmit.style.display = 'none';
-                        btnBiometric.style.display = 'block';
-                        showStatus("Identity Matched. Final Step: Biometric confirmation required.", "");
-
-                        // Wait for user to click the biometric button to ensure a fresh gesture context
-                        const result = await new Promise((resolve, reject) => {
-                            btnBiometric.onclick = async () => {
-                                try {
-                                    btnBiometric.disabled = true;
-                                    showStatus("Touch Biometric Sensor now...", "");
-                                    const ok = await verifyBiometric(userData.biometric);
-                                    resolve(ok);
-                                } catch (e) {
-                                    showStatus(e.message, "error");
-                                    btnBiometric.disabled = false;
-                                    // Don't reject here, let the user try again
-                                }
-                            };
-                        });
-
-                        if (!result) return;
-                    }
-
                     if (userData.lastAttendance === todayStr) {
-                        showStatus("Identity verified. Presence already logged.", "success");
+                        showStatus("Attendance already logged.", "success");
                         finishSubmit(name, gender, spaceData);
                         return;
                     }

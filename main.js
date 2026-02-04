@@ -342,10 +342,10 @@ async function handleCreate() {
             name: name,
             password: password,
             createdAt: new Date(),
-            config: { regNo: true, course: true, phone: false, voiceEnabled: true, biometricEnabled: true }
+            config: { regNo: true, course: true, phone: false, voiceEnabled: true }
         });
 
-        enterSpace(docRef.id, { name, password, config: { regNo: true, course: true, phone: false, voiceEnabled: true, biometricEnabled: true } });
+        enterSpace(docRef.id, { name, password, config: { regNo: true, course: true, phone: false, voiceEnabled: true } });
     } catch (err) {
         portalError.innerText = "Create Error: " + err.message;
         btnPortalCreate.innerText = originalText;
@@ -812,6 +812,9 @@ async function initSystem() {
     }
     console.log("Initializing Attendance SystemAI...");
 
+    // 1. Proactively start camera (Don't wait for models)
+    if (!video.srcObject) startVideo();
+
     // Check if we are on file:// protocol, which often breaks modules/fetch
     if (window.location.protocol === 'file:') {
         console.warn("Running on file:// protocol. This may cause CORS issues with module imports and fetch requests.");
@@ -830,10 +833,9 @@ async function initSystem() {
     }
 
     if (loaded) {
-        console.log("Models Loaded. Requesting camera access...");
+        console.log("Models Loaded successfully.");
         isModelsLoaded = true;
-        loadingText.innerText = "Requesting Camera Access...";
-        startVideo();
+        // If camera is already ready, the overlay might already be hidden by startVideo
     } else {
         loadingText.innerHTML = "Error: Could not load AI models. <br><small>Please check your internet connection.</small>";
         statusBadge.innerText = "Load Error";
@@ -852,9 +854,15 @@ async function initSystem() {
 // Init
 
 function startVideo() {
-    statusBadge.innerText = "Accessing Camera...";
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        loadingText.innerHTML = `<span style="color:#ef4444; font-weight:800;">Secure Context Required</span><br><small>Camera access requires HTTPS or localhost.</small>`;
+        statusBadge.innerText = "Security Error";
+        return;
+    }
 
-    // Simplified constraints for better compatibility
+    statusBadge.innerText = "Accessing Camera...";
+    loadingText.innerText = "Requesting Camera Access...";
+
     const constraints = {
         video: {
             facingMode: "user",
@@ -863,71 +871,54 @@ function startVideo() {
         }
     };
 
-    navigator.mediaDevices.getUserMedia(constraints)
-        .then(stream => {
-            console.log("Camera access granted.");
-            video.srcObject = stream;
-            // Wait for video to actually start playing
-            video.onloadedmetadata = () => {
-                video.play().then(() => {
-                    console.log("Video playing.");
+    const handleStream = (stream) => {
+        console.log("Camera access granted.");
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+            video.play().then(() => {
+                console.log("Video playing.");
+                loadingOverlay.style.display = "none";
+                const face3D = document.getElementById('face-3d-container');
+                if (face3D) {
+                    face3D.classList.add('fade-out');
+                    setTimeout(() => face3D.style.display = 'none', 800);
+                }
+                statusBadge.innerText = "System Active";
+                statusBadge.className = "status-badge status-ready";
+            }).catch(err => {
+                console.error("Video Play Error:", err);
+                loadingText.innerHTML = "Click to Start Camera";
+                const startBtn = document.createElement('button');
+                startBtn.innerText = "Start Camera";
+                startBtn.className = "btn-primary";
+                startBtn.style.marginTop = "15px";
+                startBtn.onclick = () => {
+                    video.play();
                     loadingOverlay.style.display = "none";
+                };
+                loadingOverlay.appendChild(startBtn);
+            });
+        };
+    };
 
-                    // Fade out 3D face after video starts
-                    const face3D = document.getElementById('face-3d-container');
-                    if (face3D) {
-                        face3D.classList.add('fade-out');
-                        setTimeout(() => face3D.style.display = 'none', 800);
-                    }
-
-                    statusBadge.innerText = "System Active";
-                    statusBadge.className = "status-badge status-ready";
-                }).catch(err => {
-                    console.error("Video Play Error:", err);
-                    loadingText.innerHTML = "Click to Start Camera";
-                    // Add a button since some browsers block auto-play
-                    const startBtn = document.createElement('button');
-                    startBtn.innerText = "Start Camera";
-                    startBtn.className = "btn-primary";
-                    startBtn.style.marginTop = "15px";
-                    startBtn.onclick = () => {
-                        video.play();
-                        loadingOverlay.style.display = "none";
-                        statusBadge.innerText = "System Active";
-                    };
-                    loadingOverlay.appendChild(startBtn);
-                });
-            };
-        })
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(handleStream)
         .catch(err => {
-            console.error("Camera Error:", err);
-            loadingText.innerHTML = `<span style="color:#ef4444; font-weight:800;">Hardware Error</span><br><small>${err.message}</small>`;
-            statusBadge.innerText = "Camera Error";
-            statusBadge.className = "status-badge status-error";
-
-            // Show overlay with error color
-            loadingOverlay.style.background = "rgba(10, 0, 0, 0.9)";
-
-            // Add a retry button
-            const retryBtn = document.createElement('button');
-            retryBtn.innerText = "Retry Camera Access";
-            retryBtn.className = "btn-primary";
-            retryBtn.style.marginTop = "15px";
-            retryBtn.onclick = () => startVideo();
-
-            // Add a troubleshooting button
-            const helpBtn = document.createElement('button');
-            helpBtn.innerText = "Troubleshoot Guide";
-            helpBtn.className = "btn-secondary";
-            helpBtn.style.marginTop = "10px";
-            helpBtn.onclick = () => alert("1. Click the lock icon in the address bar.\n2. Ensure Camera is set to 'Allow'.\n3. Refresh the page.");
-
-            // Clear old buttons if any
-            const existingBtns = loadingOverlay.querySelectorAll('button');
-            existingBtns.forEach(b => b.remove());
-
-            loadingOverlay.appendChild(retryBtn);
-            loadingOverlay.appendChild(helpBtn);
+            console.warn("Primary constraints failed, retrying generic...", err);
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(handleStream)
+                .catch(e => {
+                    console.error("Camera Error:", e);
+                    loadingText.innerHTML = `<span style="color:#ef4444; font-weight:800;">Camera Error</span><br><small>${e.message}</small>`;
+                    statusBadge.innerText = "Camera Error";
+                    loadingOverlay.style.background = "rgba(10, 0, 0, 0.9)";
+                    const retryBtn = document.createElement('button');
+                    retryBtn.innerText = "Retry Camera";
+                    retryBtn.className = "btn-primary";
+                    retryBtn.style.marginTop = "15px";
+                    retryBtn.onclick = () => startVideo();
+                    loadingOverlay.appendChild(retryBtn);
+                });
         });
 }
 

@@ -146,19 +146,7 @@
             margin-bottom: 20px;
         }
 
-        @keyframes header-logo-pulse {
 
-            0%,
-            100% {
-                transform: scale(1) translateY(0);
-                filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.6));
-            }
-
-            50% {
-                transform: scale(1.05) translateY(-5px);
-                filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.4));
-            }
-        }
 
         .error-screen {
             display: none;
@@ -168,55 +156,6 @@
             border: 3.5px solid rgba(239, 68, 68, 0.4);
             border-radius: 24px;
             margin-top: 20px;
-        }
-
-        .biometric-screen {
-            display: none;
-            text-align: center;
-            padding: 30px;
-            background: rgba(16, 185, 129, 0.05);
-            border: 3.5px solid rgba(16, 185, 129, 0.2);
-            border-radius: 32px;
-            backdrop-filter: blur(20px);
-        }
-
-        .fingerprint-icon {
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 25px;
-            background: url('folder/photo.png') no-repeat center;
-            background-size: contain;
-            filter: drop-shadow(0 0 15px var(--accent));
-            animation: bio-pulse 2s ease-in-out infinite;
-            opacity: 0.8;
-        }
-
-        .scan-line {
-            width: 100%;
-            height: 2px;
-            background: var(--accent);
-            box-shadow: 0 0 10px var(--accent);
-            position: absolute;
-            top: 0;
-            left: 0;
-            animation: scan-move 2s linear infinite;
-        }
-
-        @keyframes scan-move {
-            0% {
-                top: 0%;
-                opacity: 0;
-            }
-
-            50% {
-                top: 50%;
-                opacity: 1;
-            }
-
-            100% {
-                top: 100%;
-                opacity: 0;
-            }
         }
     </style>
 </head>
@@ -228,8 +167,8 @@
             <div class="bio-fingerprint"></div>
             <div class="bio-scan-line"></div>
         </div>
-        <div class="bio-text">Biometric Scanning</div>
-        <div class="bio-status">Initializing CognitoAttend Systems...</div>
+        <div class="bio-text">CognitoAttend</div>
+        <div class="bio-status">Initializing Systems...</div>
     </div>
 
     <script>
@@ -261,7 +200,7 @@
             <div style="width: 70px;"></div> <!-- Spacer for balance -->
         </div>
         <div style="text-align: center; margin-bottom: 35px;">
-            <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 5px;">Biometric Scan</h1>
+            <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 5px;">Profile Registration</h1>
             <p style="color: #888; font-size: 0.9rem;">Registering your secure profile for <span id="space-name-display"
                     style="color: var(--accent); font-weight: 700;">Workspace</span></p>
         </div>
@@ -306,13 +245,7 @@
                     <option value="other">Other</option>
                 </select>
             </div>
-            <div class="input-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 25px;">
-                <input type="checkbox" id="enable-biometric" style="width: 20px; height: 20px; cursor: pointer;"
-                    checked>
-                <label for="enable-biometric"
-                    style="margin-bottom: 0; cursor: pointer; text-transform: none; font-size: 0.9rem; color: #fff;">Enable
-                    Biometric (Fingerprint) Verification</label>
-            </div>
+
             <div class="registration-actions"
                 style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                 <button id="btn-snap" class="btn-register"
@@ -329,24 +262,13 @@
         <div class="success-screen" id="success-view">
             <div class="success-icon">✓</div>
             <h2 style="font-weight:800; margin-bottom:10px;">Registration Submitted</h2>
-            <p style="color:#888; line-height:1.6;">Your biometric profile is now pending admin approval. You will be
+            <p style="color:#888; line-height:1.6;">Your profile is now pending admin approval. You will be
                 able to mark attendance once verified.</p>
             <a href="index.html" class="btn-register"
                 style="display: block; text-decoration: none; margin-top: 30px;">Back to Home</a>
         </div>
 
-        <div class="biometric-screen" id="biometric-view">
-            <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 20px;">
-                <div class="fingerprint-icon"></div>
-                <div class="scan-line"></div>
-            </div>
-            <h2 style="font-weight:800; margin-bottom:10px;">Biometric Verification</h2>
-            <p style="color:#888; line-height:1.6; margin-bottom: 25px;">Please scan your <strong
-                    style="color: var(--accent);">RIGHT THUMB</strong> to secure your profile and enable biometric
-                access.</p>
-            <button id="btn-start-biometric" class="btn-register">Scan Right Thumb</button>
-            <p id="biometric-feedback" style="margin-top: 15px; font-size: 0.8rem; color: #888;"></p>
-        </div>
+
 
         <div class="error-screen" id="error-view">
             <div style="font-size: 4rem; color: #ef4444; margin-bottom: 20px;">⚠</div>
@@ -426,12 +348,9 @@
         const btnSnap = document.getElementById('btn-snap');
         const btnGallery = document.getElementById('btn-gallery');
         const inputGallery = document.getElementById('input-gallery');
-        const biometricView = document.getElementById('biometric-view');
-        const btnStartBiometric = document.getElementById('btn-start-biometric');
-        const biometricFeedback = document.getElementById('biometric-feedback');
 
-        let registrationData = null;
-        let isBiometricHardwareReady = false; 
+
+        let registrationData = null; // Temporary store for face & form data
 
         const params = new URLSearchParams(window.location.search);
         const spaceId = params.get('s');
@@ -500,21 +419,67 @@
                 loadingText.innerText = "Requesting Camera Access...";
                 cameraRetryUI.style.display = 'none';
 
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error("Your browser does not support camera access. Please use Chrome or Safari.");
+                }
+
+                // Standard constraints with mobile-friendly properties
+                const constraints = {
+                    video: {
+                        facingMode: 'user',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                let stream;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                } catch (e) {
+                    console.warn("Initial constraints failed, retrying with generic ones...", e);
+                    // Fallback to simpler constraints if the above fails (some older or restricted browsers)
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                }
+
                 video.srcObject = stream;
-                await video.play();
+
+                // Crucial for iOS/Android: wait for play promise
+                try {
+                    await video.play();
+                } catch (playErr) {
+                    console.error("Video play failed:", playErr);
+                    // This often happens if the browser requires a user gesture
+                    throw new Error("Auto-start blocked. Please click 'Allow Camera Access' below.");
+                }
+
                 video.onloadedmetadata = () => {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
+                    console.log("Camera initialized:", video.videoWidth, "x", video.videoHeight);
                 };
+
                 loadingOverlay.style.display = 'none';
+                feedback.innerText = "Camera Ready";
+                feedback.style.color = "#10b981";
                 return true;
             } catch (err) {
-                console.error("Camera Error:", err);
+                console.error("Camera Error Details:", err);
                 loadingSpinner.style.display = 'none';
                 loadingText.style.display = 'none';
                 cameraRetryUI.style.display = 'block';
-                feedback.innerText = "Camera Access Denied";
+
+                let userMsg = "Camera Access Required";
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    userMsg = "Permission Denied. Please enable camera in settings.";
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    userMsg = "No camera found on this device.";
+                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                    userMsg = "Camera is already in use by another app.";
+                } else if (err.message) {
+                    userMsg = err.message;
+                }
+
+                feedback.innerText = userMsg;
                 feedback.style.color = "#ef4444";
                 return false;
             }
@@ -526,6 +491,9 @@
 
         async function startPortal() {
             try {
+                // 1. Proactively start camera first (don't wait for Firestore or models)
+                const cameraPromise = initCamera();
+
                 if (!spaceId || isNaN(expiryTime)) {
                     showError("Invalid Parameters", "The registration link you used is missing critical identification tokens.");
                     return;
@@ -538,32 +506,13 @@
 
                 startTimer();
 
-                // Config
-                const spaceRef = doc(db, 'spaces', spaceId);
-                const spaceSnap = await getDoc(spaceRef);
-
-                if (!spaceSnap.exists()) {
-                    showError("Workspace Suspended", "The workspace associated with this link is no longer available.");
-                    return;
-                }
-                workspaceConfig = spaceSnap.data();
-                document.getElementById('space-name-display').innerText = workspaceConfig.name || "Workspace";
-
-                // Check if biometrics are enabled by admin
-                const isBiometricEnabledByAdmin = workspaceConfig.config && workspaceConfig.config.biometricEnabled !== false;
-                const bioCheckboxGroup = document.getElementById('enable-biometric').parentElement;
-                if (!isBiometricEnabledByAdmin) {
-                    bioCheckboxGroup.style.display = 'none';
-                    document.getElementById('enable-biometric').checked = false;
-                }
-
-                setupDynamicFields(workspaceConfig.config || {});
-
-                // Camera & AI
-                feedback.innerText = "Initializing Hardware & AI...";
-
+                // 2. Load Models in background
                 const modelsPromise = (async () => {
-                    const loadModel = async (url) => {
+                    const loadWithRetry = async (url) => {
+                        // Wait for faceapi to be defined (in case of slow CDN)
+                        for (let i = 0; i < 50 && !window.faceapi; i++) await new Promise(r => setTimeout(r, 200));
+                        if (!window.faceapi) throw new Error("AI Library failed to load. Please refresh.");
+
                         try {
                             await Promise.all([
                                 faceapi.nets.tinyFaceDetector.loadFromUri(url),
@@ -575,19 +524,38 @@
                             return false;
                         }
                     };
-                    let ok = await loadModel(MODEL_URL);
-                    if (!ok) ok = await loadModel(FALLBACK_MODEL_URL);
+                    let ok = await loadWithRetry(MODEL_URL);
+                    if (!ok) ok = await loadWithRetry(FALLBACK_MODEL_URL);
                     if (!ok) throw new Error("Could not load AI models from any source.");
                     return true;
                 })();
 
-                // Initialize camera
-                const cameraOk = await initCamera();
+                // 3. Load Workspace Config in background
+                const configPromise = (async () => {
+                    const spaceRef = doc(db, 'spaces', spaceId);
+                    const spaceSnap = await getDoc(spaceRef);
+                    if (!spaceSnap.exists()) {
+                        throw new Error("Workspace Suspended: The workspace is no longer available.");
+                    }
+                    return spaceSnap.data();
+                })();
 
-                // Then wait for models
-                await modelsPromise;
+                // 4. Wait for camera access prompt (User sees this immediately)
+                const cameraOk = await cameraPromise;
 
-                await signInAnonymously(auth);
+                // 5. Wait for everything else
+                let workspaceConfigData;
+                try {
+                    [workspaceConfigData] = await Promise.all([configPromise, modelsPromise, signInAnonymously(auth)]);
+                } catch (e) {
+                    showError("System Error", e.message);
+                    return;
+                }
+
+                workspaceConfig = workspaceConfigData;
+                document.getElementById('space-name-display').innerText = workspaceConfig.name || "Workspace";
+                setupDynamicFields(workspaceConfig.config || {});
+
                 feedback.innerText = cameraOk ? "Ready to scan face" : "Camera Access Required";
                 feedback.style.color = cameraOk ? "#10b981" : "#ef4444";
                 isReady = true;
@@ -694,19 +662,8 @@
 
             try {
                 const photoBase64 = captureFacePhoto(video, lastDetection.detection.box);
-                const isBiometricEnabled = document.getElementById('enable-biometric').checked;
-
-                if (isBiometricEnabled) {
-                    registrationData = {
-                        name,
-                        descriptor: lastDetection.descriptor,
-                        photo: photoBase64
-                    };
-                    showBiometricView();
-                } else {
-                    feedback.innerText = "Saving profile...";
-                    await processRegistration(name, lastDetection.descriptor, photoBase64);
-                }
+                feedback.innerText = "Saving profile...";
+                await processRegistration(name, lastDetection.descriptor, photoBase64);
             } catch (err) {
                 alert(err.message);
                 btnSnap.disabled = false;
@@ -757,21 +714,8 @@
                 const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
 
                 if (detection) {
-                    const photoBase64 = captureFacePhoto(img, detection.detection.box);
-                    const isBiometricEnabled = document.getElementById('enable-biometric').checked;
-
-                    if (isBiometricEnabled) {
-                        // Instead of processing immediately, move to biometric step
-                        registrationData = {
-                            name,
-                            descriptor: detection.descriptor,
-                            photo: photoBase64
-                        };
-                        showBiometricView();
-                    } else {
-                        feedback.innerText = "Saving profile...";
-                        await processRegistration(name, detection.descriptor, photoBase64);
-                    }
+                    feedback.innerText = "Saving profile...";
+                    await processRegistration(name, detection.descriptor, photoBase64);
                 } else {
                     alert("No face detected in the uploaded photo. Please try another one.");
                     feedback.innerText = "No face detected in upload";
@@ -813,162 +757,13 @@
                 createdAt: new Date().toISOString()
             };
 
-            if (registrationData && registrationData.biometric) {
-                finalData.biometric = registrationData.biometric;
-            }
-
             await addDoc(collection(db, 'users'), finalData);
 
-            biometricView.style.display = 'none';
             document.getElementById('success-view').style.display = 'block';
+            document.getElementById('form-view').style.display = 'none';
+            document.querySelector('.camera-box').style.display = 'none';
             feedback.style.display = 'none';
         }
-
-        // Bio
-
-        async function checkWebAuthnSupport() {
-            if (!window.isSecureContext) {
-                throw new Error("Biometric security requires a SECURE CONNECTION (HTTPS). Please ensure you are using an https:// link.");
-            }
-            if (!window.PublicKeyCredential) {
-                throw new Error("Your browser or device does not support biometric (WebAuthn) credentials.");
-            }
-            const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-            if (!available) {
-                throw new Error("No biometric hardware (fingerprint/face) was detected or is available on this device.");
-            }
-            return true;
-        }
-
-        async function showBiometricView() {
-            biometricFeedback.innerText = "Checking biometric compatibility...";
-            biometricFeedback.style.color = "#888";
-
-            try {
-                isBiometricHardwareReady = await checkWebAuthnSupport();
-                document.getElementById('form-view').style.display = 'none';
-                document.querySelector('.camera-box').style.display = 'none';
-                biometricView.style.display = 'block';
-                feedback.innerText = "Face Captured. Step 2: Biometric Scan";
-                biometricFeedback.innerText = "Secure environment verified. Ready to scan.";
-                biometricFeedback.style.color = "#10b981";
-            } catch (err) {
-                console.error("WebAuthn Support Error:", err);
-                alert(err.message);
-                feedback.innerText = "Biometric Setup Failed";
-                feedback.style.color = "#ef4444";
-                btnSnap.disabled = false;
-            }
-        }
-
-        btnStartBiometric.onclick = async () => {
-            if (!registrationData) return;
-
-            // Check cached results synchronously to prevent gesture loss in Safari/Firefox
-            if (!isBiometricHardwareReady) {
-                alert("Biometric hardware check failed. Please refresh and try again.");
-                return;
-            }
-
-            btnStartBiometric.disabled = true;
-            biometricFeedback.innerText = "Initializing secure biometric prompt...";
-            biometricFeedback.style.color = "#10b981";
-
-            try {
-                // IMPORTANT: In Safari/Firefox, navigator.credentials.create MUST be 
-                // triggered by a user gesture. Excessive async work (like hardware checks)
-                // before this call can cause the gesture to "expire".
-
-                // Generate a random challenge
-                const challenge = new Uint8Array(32);
-                window.crypto.getRandomValues(challenge);
-
-                const userID = new Uint8Array(16);
-                window.crypto.getRandomValues(userID);
-
-                const publicKeyCredentialCreationOptions = {
-                    challenge: challenge,
-                    rp: {
-                        name: "CognitoAttend",
-                        id: window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname,
-                    },
-                    user: {
-                        id: userID,
-                        name: registrationData.name,
-                        displayName: registrationData.name,
-                    },
-                    pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
-                    authenticatorSelection: {
-                        authenticatorAttachment: "platform", // Keep platform for biometric specificity
-                        userVerification: "required", // Require biometric/PIN
-                        residentKey: "preferred",
-                        requireResidentKey: false
-                    },
-                    timeout: 60000,
-                    attestation: "none"
-                };
-
-                console.log("Creating credential with options:", publicKeyCredentialCreationOptions);
-                const credential = await navigator.credentials.create({
-                    publicKey: publicKeyCredentialCreationOptions
-                });
-
-                if (credential) {
-                    biometricFeedback.innerText = "Biometric scan successful! Finalizing registration...";
-                    biometricFeedback.style.color = "#10b981";
-
-                    // Store credential ID and basic info
-                    registrationData.biometric = {
-                        credentialId: credential.id,
-                        type: "platform_hardware", // Generalized to platform hardware
-                        timestamp: new Date().toISOString()
-                    };
-
-                    await processRegistration(registrationData.name, registrationData.descriptor, registrationData.photo);
-                }
-            } catch (err) {
-                console.error("Biometric Error Flow:", err);
-                let errorMsg = err.message;
-
-                // Specific error handling for user cancels or common failures
-                if (err.name === 'NotAllowedError') {
-                    errorMsg = "Registration cancelled or timed out.";
-                } else if (err.name === 'NotSupportedError') {
-                    errorMsg = "The device configuration is not supported for biometrics.";
-                } else if (!window.isSecureContext) {
-                    errorMsg = "Biometrics require an HTTPS connection. Insecure context detected.";
-                }
-
-                biometricFeedback.innerText = "Error: " + errorMsg + " Please try again.";
-                biometricFeedback.style.color = "#ef4444";
-                btnStartBiometric.disabled = false;
-            }
-        };
-
-        // Update btnSnap.onclick to use showBiometricView
-        const originalBtnSnapOnClick = btnSnap.onclick;
-        btnSnap.onclick = async () => {
-            const name = inputName.value.trim();
-            if (!name) return alert("Please enter your name.");
-            if (!lastDetection) return alert("Please align your face with the camera.");
-
-            btnSnap.disabled = true;
-            feedback.innerText = "Processing face profile...";
-
-            try {
-                const photoBase64 = captureFacePhoto(video, lastDetection.detection.box);
-                registrationData = {
-                    name,
-                    descriptor: lastDetection.descriptor,
-                    photo: photoBase64
-                };
-                showBiometricView();
-            } catch (err) {
-                alert(err.message);
-                btnSnap.disabled = false;
-                feedback.innerText = "Error: " + err.message;
-            }
-        };
 
         startPortal();
     </script>
