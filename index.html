@@ -379,9 +379,13 @@
                     <h3 style="margin-top: 15px;">Fleet Link Activation</h3>
                     <div class="form-group"
                         style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
-                        <button id="btn-generate-magic" class="btn-secondary btn-sm" style="width: 100%;">🔗 Generate
-                            Magic
-                            Link</button>
+                        <div style="display: flex; gap: 8px;">
+                            <button id="btn-generate-magic" class="btn-secondary btn-sm" style="flex: 1;">🔗 Magic
+                                Link</button>
+                            <button id="btn-project-magic" class="btn-secondary btn-sm"
+                                style="flex: 1; background: var(--accent); color: black; border: none;">🖥️ Project
+                                QR</button>
+                        </div>
                         <div id="magic-link-container" class="hidden" style="margin-top: 10px;">
                             <input type="text" id="magic-link-input" readonly style="font-size: 0.7rem; padding: 8px;">
                             <button id="btn-copy-magic" class="btn-sm"
@@ -553,6 +557,38 @@
                     Delete</button>
                 <button id="btn-confirm-no" class="btn-secondary" style="flex: 1;">Cancel</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Magic QR Modal -->
+    <div id="magic-qr-modal" class="qr-modal-container hidden" role="dialog" aria-labelledby="magic-qr-title">
+        <div class="qr-modal-content" style="max-width: 500px; padding: 40px;">
+            <button id="btn-close-magic-qr" class="btn-close" aria-label="Close Magic QR">&times;</button>
+            <h2 id="magic-qr-title"
+                style="font-weight: 800; font-size: 1.8rem; margin-bottom: 5px; color: var(--accent);">SCAN TO REGISTER
+            </h2>
+            <p style="color: #888; margin-bottom: 25px;">Registrations are live. Scan this code to join <span
+                    id="magic-qr-space-name" style="color: #fff; font-weight: 700;">Workspace</span></p>
+
+            <div class="qr-wrapper"
+                style="width: 300px; height: 300px; margin: 0 auto; border: 8px solid rgba(0, 242, 255, 0.2); padding: 10px; background: #fff; border-radius: 24px; box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);">
+                <img id="magic-qr-image" src="" alt="Magic Registration QR Code"
+                    style="width: 100%; height: 100%; display: block;">
+                <div class="qr-scanner-line" style="background: var(--accent); opacity: 0.5;"></div>
+            </div>
+
+            <div
+                style="margin-top: 30px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                <div
+                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 5px;">
+                    Link Expires In</div>
+                <div id="magic-qr-timer"
+                    style="font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 700; color: var(--accent);">
+                    05:00</div>
+            </div>
+
+            <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">This portal is secured by CognitoAttend
+                Biometric HUD</p>
         </div>
     </div>
 

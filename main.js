@@ -2252,10 +2252,20 @@ const btnExportHistoryPdf = document.getElementById('btn-export-history-pdf');
 if (btnExportHistoryPdf) btnExportHistoryPdf.addEventListener('click', exportHistoryToPDF);
 
 // Magic Link Event Listeners
+// Magic Link Event Listeners
 const btnGenerateMagic = document.getElementById('btn-generate-magic');
+const btnProjectMagic = document.getElementById('btn-project-magic');
 const magicLinkContainer = document.getElementById('magic-link-container');
 const magicLinkInput = document.getElementById('magic-link-input');
 const btnCopyMagic = document.getElementById('btn-copy-magic');
+
+const magicQrModal = document.getElementById('magic-qr-modal');
+const btnCloseMagicQr = document.getElementById('btn-close-magic-qr');
+const magicQrImage = document.getElementById('magic-qr-image');
+const magicQrTimer = document.getElementById('magic-qr-timer');
+const magicQrSpaceName = document.getElementById('magic-qr-space-name');
+
+let magicQrInterval = null;
 
 if (btnGenerateMagic) {
     btnGenerateMagic.addEventListener('click', () => {
@@ -2268,6 +2278,64 @@ if (btnGenerateMagic) {
         magicLinkContainer.classList.remove('hidden');
         btnGenerateMagic.innerText = "🔄 Regenerated";
     });
+}
+
+if (btnProjectMagic) {
+    btnProjectMagic.addEventListener('click', showMagicQR);
+}
+
+if (btnCloseMagicQr) {
+    btnCloseMagicQr.addEventListener('click', () => {
+        magicQrModal.classList.add('hidden');
+        if (magicQrInterval) clearInterval(magicQrInterval);
+    });
+}
+
+async function showMagicQR() {
+    if (!currentSpace) return alert("Space ID not found");
+
+    magicQrSpaceName.innerText = currentSpace.name || "Workspace";
+    let baseUrl = window.location.href.split('?')[0].split('#')[0].replace('index.html', '');
+    if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+    const duration = 5 * 60 * 1000;
+    const expiresAt = Date.now() + duration;
+    const url = `${baseUrl}register.html?s=${currentSpace.id}&exp=${expiresAt}`;
+
+    // Generate QR
+    const qrEngine = window.QRCode || (typeof QRCode !== 'undefined' ? QRCode : null);
+    if (qrEngine && qrEngine.toDataURL) {
+        qrEngine.toDataURL(url, {
+            width: 500,
+            margin: 2,
+            errorCorrectionLevel: 'H'
+        }, (err, dataUrl) => {
+            if (err) console.error(err);
+            magicQrImage.src = dataUrl;
+        });
+    } else {
+        magicQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}`;
+    }
+
+    magicQrModal.classList.remove('hidden');
+
+    // Timer
+    if (magicQrInterval) clearInterval(magicQrInterval);
+
+    const updateTimer = () => {
+        const remaining = Math.max(0, expiresAt - Date.now());
+        const mins = Math.floor(remaining / 60000);
+        const secs = Math.floor((remaining % 60000) / 1000);
+        magicQrTimer.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+        if (remaining <= 0) {
+            clearInterval(magicQrInterval);
+            magicQrTimer.style.color = "var(--danger)";
+        }
+    };
+
+    updateTimer();
+    magicQrInterval = setInterval(updateTimer, 1000);
 }
 
 if (btnCopyMagic) {
