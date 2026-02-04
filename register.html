@@ -430,7 +430,8 @@
         const btnStartBiometric = document.getElementById('btn-start-biometric');
         const biometricFeedback = document.getElementById('biometric-feedback');
 
-        let registrationData = null; // Temporary store for face & form data
+        let registrationData = null;
+        let isBiometricHardwareReady = false; 
 
         const params = new URLSearchParams(window.location.search);
         const spaceId = params.get('s');
@@ -844,7 +845,7 @@
             biometricFeedback.style.color = "#888";
 
             try {
-                await checkWebAuthnSupport();
+                isBiometricHardwareReady = await checkWebAuthnSupport();
                 document.getElementById('form-view').style.display = 'none';
                 document.querySelector('.camera-box').style.display = 'none';
                 biometricView.style.display = 'block';
@@ -863,13 +864,20 @@
         btnStartBiometric.onclick = async () => {
             if (!registrationData) return;
 
+            // Check cached results synchronously to prevent gesture loss in Safari/Firefox
+            if (!isBiometricHardwareReady) {
+                alert("Biometric hardware check failed. Please refresh and try again.");
+                return;
+            }
+
             btnStartBiometric.disabled = true;
             biometricFeedback.innerText = "Initializing secure biometric prompt...";
             biometricFeedback.style.color = "#10b981";
 
             try {
-                // Final check before proceeding
-                await checkWebAuthnSupport();
+                // IMPORTANT: In Safari/Firefox, navigator.credentials.create MUST be 
+                // triggered by a user gesture. Excessive async work (like hardware checks)
+                // before this call can cause the gesture to "expire".
 
                 // Generate a random challenge
                 const challenge = new Uint8Array(32);

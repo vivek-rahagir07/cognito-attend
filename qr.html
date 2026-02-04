@@ -824,9 +824,27 @@
 
                     // MATCH FOUND -> CHECK BIOMETRIC
                     const isBiometricEnabledByAdmin = spaceData.config && spaceData.config.biometricEnabled !== false;
-                    if (isBiometricEnabledByAdmin && userData.biometric) {
-                        showStatus("Touch Biometric Sensor to verify identity...", "");
-                        await verifyBiometric(userData.biometric);
+                    if (isBiometricEnabledByAdmin && userData.biometric && isBiometricHardwareReady) {
+                        btnSubmit.style.display = 'none';
+                        btnBiometric.style.display = 'block';
+                        showStatus("Face Identity Verified. Final Step: Biometric confirmation required.", "");
+
+                        // Wait for user to click the biometric button to ensure a fresh gesture context
+                        const result = await new Promise((resolve) => {
+                            btnBiometric.onclick = async () => {
+                                try {
+                                    btnBiometric.disabled = true;
+                                    showStatus("Touch Biometric Sensor now...", "");
+                                    const ok = await verifyBiometric(userData.biometric);
+                                    resolve(ok);
+                                } catch (e) {
+                                    showStatus(e.message, "error");
+                                    btnBiometric.disabled = false;
+                                }
+                            };
+                        });
+
+                        if (!result) return;
                     }
 
                     if (userData.lastAttendance === todayStr) {
