@@ -461,15 +461,15 @@
         const expiryTime = params.get('exp');
 
         const btnSubmit = document.getElementById('btn-submit');
+        const btnBiometric = document.getElementById('btn-biometric');
         const statusDiv = document.getElementById('status');
         const formView = document.getElementById('form-view');
         const successView = document.getElementById('success-view');
         const dynamicFieldsContainer = document.getElementById('dynamic-fields-container');
         const errorView = document.getElementById('error-view');
 
-
-
         let isReady = false;
+        let isBiometricHardwareReady = false;
         let currentSpaceData = null;
         let deviceID = localStorage.getItem('cognito_device_id');
         if (!deviceID) {
@@ -482,6 +482,15 @@
 
         async function initSystem() {
             try {
+                // Initialize biometric check
+                try {
+                    if (window.isSecureContext && window.PublicKeyCredential) {
+                        isBiometricHardwareReady = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+                    }
+                } catch (e) {
+                    console.warn("Biometric check failed:", e);
+                }
+
                 if (!spaceId || !nonce) {
                     showErrorScreen("Missing Parameters", "This link is missing identification tokens. Please scan the QR code again.");
                     return;
