@@ -21,6 +21,115 @@
         0 8px 10px -6px rgb(0 0 0 / 0.5);
     --transition: 0.3s ease;
     --nav-height: 80px;
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --glass-bg: rgba(10, 10, 10, 0.85);
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0);
+    }
+
+    50% {
+        transform: translateY(-15px) rotate(1deg);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes aura-flow {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    33% {
+        transform: translate(5vw, 10vh) scale(1.1);
+    }
+
+    66% {
+        transform: translate(-5vw, 5vh) scale(0.9);
+    }
+}
+
+@keyframes fade-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes card-entrance {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.95);
+        filter: blur(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+.aura-container {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background: #000;
+}
+
+.aura-blob {
+    position: absolute;
+    width: 60vw;
+    height: 60vw;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.15;
+    animation: aura-flow 20s ease-in-out infinite;
+}
+
+.aura-1 {
+    top: -10%;
+    left: -10%;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    animation-delay: 0s;
+}
+
+.aura-2 {
+    bottom: -10%;
+    right: -10%;
+    background: radial-gradient(circle, #ff00f2 0%, transparent 70%);
+    animation-delay: -5s;
+}
+
+.aura-3 {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, #7000ff 0%, transparent 70%);
+    animation-delay: -10s;
+    width: 40vw;
+    height: 40vw;
 }
 
 .sr-only {
@@ -245,6 +354,7 @@ h1 {
     max-width: 500px;
     position: relative;
     will-change: filter, transform;
+    animation: float 8s ease-in-out infinite;
 }
 
 .controls-panel:hover {
@@ -391,9 +501,27 @@ h1 {
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    transition: none;
+    transition: all 0.3s ease;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
     border: 3px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent);
+    transform: skewX(-25deg);
+    transition: none;
+    animation: shimmer 4s infinite;
 }
 
 .btn-primary:hover {
@@ -609,8 +737,8 @@ input:focus {
     text-transform: none;
     background: linear-gradient(90deg, #fff, var(--accent, #10b981), #fff);
     background-size: 200% auto;
-    -webkit-background-clip: text;
     background-clip: text;
+    -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation:
         footer-shine 3s linear infinite,
@@ -849,14 +977,17 @@ input:focus {
         transform: translateY(100px) scale(0.8) rotateX(20deg);
         filter: blur(20px) brightness(2);
     }
+
     60% {
         opacity: 1;
         transform: translateY(-20px) scale(1.05) rotateX(-5deg);
         filter: blur(0) brightness(1.2);
     }
+
     80% {
         transform: translateY(5px) scale(0.98) rotateX(2deg);
     }
+
     100% {
         opacity: 1;
         transform: translateY(0) scale(1) rotateX(0);
@@ -865,18 +996,40 @@ input:focus {
 }
 
 @keyframes containerJump {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0) rotate(0deg);
     }
-    25% {
+
+    50% {
         transform: translateY(-15px) rotate(0.5deg);
     }
-    50% {
-        transform: translateY(0) rotate(0deg);
-    }
-    75% {
-        transform: translateY(-8px) rotate(-0.5deg);
-    }
+}
+
+.portal-card>* {
+    opacity: 0;
+    animation: fade-slide-up 0.8s ease-out forwards;
+}
+
+.portal-card h1 {
+    animation-delay: 0.6s;
+}
+
+.portal-card p {
+    animation-delay: 0.8s;
+}
+
+.portal-card .portal-tabs {
+    animation-delay: 1.0s;
+}
+
+.portal-card .portal-form {
+    animation-delay: 1.2s;
+}
+
+.portal-card .logo-wrapper {
+    animation-delay: 1.4s;
 }
 
 @keyframes multi-glow {
@@ -2480,6 +2633,7 @@ button:active,
     font-size: 1.8rem;
     margin-bottom: 10px;
     background: linear-gradient(90deg, #fff, var(--accent));
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
