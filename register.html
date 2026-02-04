@@ -831,10 +831,10 @@
                     pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
                     authenticatorSelection: {
                         authenticatorAttachment: "platform",
-                        userVerification: "required"
+                        userVerification: "preferred"
                     },
                     timeout: 60000,
-                    attestation: "direct"
+                    attestation: "none"
                 };
 
                 const credential = await navigator.credentials.create({
@@ -847,7 +847,7 @@
 
                     // Store credential ID and basic info
                     registrationData.biometric = {
-                        credentialId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
+                        credentialId: credential.id,
                         type: "right_thumb",
                         timestamp: new Date().toISOString()
                     };

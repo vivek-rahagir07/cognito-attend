@@ -607,7 +607,8 @@
             }
 
             try {
-                const idBuffer = Uint8Array.from(atob(biometric.id), c => c.charCodeAt(0));
+                // Decode base64url if needed, or use directly if stored as string ID
+                const idBuffer = Uint8Array.from(atob(biometric.credentialId.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
                 const challenge = new Uint8Array(32);
                 window.crypto.getRandomValues(challenge);
 
@@ -617,7 +618,7 @@
                         id: idBuffer,
                         type: 'public-key',
                     }],
-                    userVerification: 'required',
+                    userVerification: 'preferred',
                 };
 
                 const assertion = await navigator.credentials.get({
@@ -626,7 +627,7 @@
                 return !!assertion;
             } catch (err) {
                 console.error("Biometric verification failed:", err);
-                throw new Error("Biometric not matched");
+                throw new Error("Biometric verification failed or cancelled. Please try again.");
             }
         }
 
@@ -809,10 +810,10 @@
                         throw new Error("Your profile is pending approval. Please talk to an admin.");
                     }
 
-                    // Match
+                    // MATCH FOUND -> CHECK BIOMETRIC
                     const isBiometricEnabledByAdmin = spaceData.config && spaceData.config.biometricEnabled !== false;
                     if (isBiometricEnabledByAdmin && userData.biometric) {
-                        showStatus("Touch Biometric Sensor to verify...", "");
+                        showStatus("Touch Biometric Sensor to verify identity...", "");
                         await verifyBiometric(userData.biometric);
                     }
 
@@ -835,11 +836,11 @@
                     });
 
                     await recordAttendanceHistory(userDoc.id, name, regNo || userData.regNo || '', course || userData.course || '', gender);
+                    finishSubmit(name, gender, spaceData);
                 } else {
-                    throw new Error("You are not registered. Please talk to an admin.");
+                    // USER NOT FOUND
+                    throw new Error("No person found please contact admin");
                 }
-
-                finishSubmit(name, gender, spaceData);
             } catch (err) {
                 showStatus(err.message, "error");
                 btnSubmit.disabled = false;
