@@ -692,7 +692,6 @@
         }
 
         btnSnap.onclick = async () => {
-            if (isCameraOff) return alert("Please turn the camera ON to capture.");
             const name = inputName.value.trim();
             if (!name) return alert("Please enter your name.");
             if (!lastDetection) return alert("Please align your face with the camera.");
