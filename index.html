@@ -367,6 +367,28 @@
                             Biometric Fingerprint Security</label>
                     </div>
 
+                    <h3 style="margin-top: 15px;">Integrations</h3>
+                    <div class="form-group"
+                        style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                        <label for="config-discord-webhook">Discord Webhook</label>
+                        <input type="password" id="config-discord-webhook" placeholder="https://discord.com/..."
+                            style="width: 100%; margin-top: 5px; font-size: 0.8rem;">
+
+                        <label for="config-telegram-token" style="margin-top: 15px; display: block;">Telegram Bot
+                            Token</label>
+                        <input type="password" id="config-telegram-token" placeholder="Bot Token"
+                            style="width: 100%; margin-top: 5px; font-size: 0.8rem;">
+
+                        <label for="config-telegram-chatid" style="margin-top: 10px; display: block;">Telegram Chat
+                            ID</label>
+                        <input type="text" id="config-telegram-chatid" placeholder="Chat ID"
+                            style="width: 100%; margin-top: 5px; font-size: 0.8rem;">
+
+                        <small
+                            style="color: var(--text-muted); font-size: 0.7rem; display: block; margin-top: 10px;">Configure
+                            external notifications for attendance alerts.</small>
+                    </div>
+
                     <h3 style="margin-top: 15px;">Geofencing Settings</h3>
                     <div class="form-group"
                         style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
@@ -475,7 +497,13 @@
                     <div class="form-group" style="margin-bottom: 15px;">
                         <input type="text" id="people-search" placeholder="Search people...">
                     </div>
-                    <div id="people-list-container" class="scrollable-list" style="max-height: 350px;"></div>
+                    <div id="people-list-container" class="scrollable-list" style="max-height: 250px;"></div>
+
+                    <div class="list-header" style="margin-top: 20px;"><span>🔥 Crowd Density Heatmap</span></div>
+                    <div
+                        style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-top: 10px;">
+                        <canvas id="density-chart" style="width: 100%; height: 180px;"></canvas>
+                    </div>
                 </div>
             </div>
         </div>

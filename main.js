@@ -1,8 +1,8 @@
-// Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, updateDoc, doc, getDoc, onSnapshot, increment, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
+import { OfflineDB } from "./offline-db.js";
 
 
 
@@ -1146,7 +1146,13 @@ async function saveSpaceConfig() {
 
     try {
         await updateDoc(doc(db, COLL_SPACES, currentSpace.id), {
-            config: { ...newConfig, examMode: examMode },
+            config: {
+                ...newConfig,
+                examMode: examMode,
+                discordWebhook: document.getElementById('config-discord-webhook')?.value || '',
+                telegramToken: document.getElementById('config-telegram-token')?.value || '',
+                telegramChatId: document.getElementById('config-telegram-chatid')?.value || ''
+            },
             geofencing: {
                 enabled: geofenceEnabled,
                 radius: geofenceRadius,
@@ -1197,11 +1203,10 @@ function syncConfigToggles() {
         document.getElementById('config-map-container').style.display = 'none';
     }
 
-    if (currentSpace.config && currentSpace.config.examMode) {
-        document.getElementById('config-exam-mode').checked = true;
-    } else {
-        document.getElementById('config-exam-mode').checked = false;
-    }
+    document.getElementById('config-exam-mode').checked = !!config.examMode;
+    document.getElementById('config-discord-webhook').value = config.discordWebhook || '';
+    document.getElementById('config-telegram-token').value = config.telegramToken || '';
+    document.getElementById('config-telegram-chatid').value = config.telegramChatId || '';
 
     if (configQrRefresh) {
         configQrRefresh.value = config.qrRefreshInterval || "30000";
@@ -2157,22 +2162,19 @@ async function markAttendance(name) {
         triggerHandshake(name);
 
         // Trigger Digital ID Card
-        showIdCard(userData);
-
-        // Live log already added above
+        if (userData) showIdCard(userData);
 
         const nowSpoken = Date.now();
         const lastTimeSpoken = lastSpoken[name] || 0;
-        // 2 second buffer for the same person to avoid accidental double-speak
         if (nowSpoken - lastTimeSpoken > 2000) {
-            const gender = userData.gender || 'male';
+            const gender = userData?.gender || 'male';
             speak(`${name} present`, gender);
             lastSpoken[name] = nowSpoken;
         }
 
         // Save to History Collection
         const dateId = new Date().toISOString().split('T')[0];
-        await addDoc(collection(db, COLL_ATTENDANCE), {
+        const attendanceData = {
             spaceId: currentSpace.id,
             userId: docId,
             name: name,
@@ -2180,12 +2182,25 @@ async function markAttendance(name) {
             course: userData.course || '',
             date: dateId,
             timestamp: new Date(),
-            snapshot: snapshot // New: store snapshot for verification
-        });
+            snapshot: snapshot
+        };
 
-        await updateDoc(doc(db, COLL_SPACES, currentSpace.id), {
-            [`historyDates.${dateId}`]: true
-        });
+        try {
+            await addDoc(collection(db, COLL_ATTENDANCE), attendanceData);
+            await updateDoc(doc(db, COLL_SPACES, currentSpace.id), {
+                [`historyDates.${dateId}`]: true
+            });
+            // New: Notifications
+            notifyDiscord(`✅ **Attendance Marked**: ${name} in ${currentSpace.name}`);
+            notifyTelegram(`✅ *Attendance Marked*: ${name} in ${currentSpace.name}`);
+
+            // New: Update Streaks
+            updateStreak(docId, name);
+        } catch (dbErr) {
+            console.warn("Firestore unreachable, saving to OfflineDB...", dbErr);
+            await OfflineDB.saveScan(attendanceData);
+            showToast("Saved offline. Will sync when online.", "info");
+        }
 
         const wrapper = document.querySelector('.camera-wrapper');
         if (wrapper) {
@@ -2295,6 +2310,7 @@ mobileNavItems.forEach(item => {
     item.addEventListener('click', () => {
         const mode = item.dataset.mode;
         setMode(mode);
+        if (mode === 'analytics') updateHeatmap();
     });
 });
 
@@ -2307,6 +2323,154 @@ const btnExportPdf = document.getElementById('btn-export-pdf');
 if (btnExportPdf) btnExportPdf.addEventListener('click', exportToPDF);
 const btnExportHistoryPdf = document.getElementById('btn-export-history-pdf');
 if (btnExportHistoryPdf) btnExportHistoryPdf.addEventListener('click', exportHistoryToPDF);
+
+// Integrations & Analytics Helpers
+
+async function updateHeatmap() {
+    const canvas = document.getElementById('density-chart');
+    if (!canvas) return;
+
+    try {
+        const todayId = new Date().toISOString().split('T')[0];
+        const q = query(collection(db, COLL_ATTENDANCE),
+            where("spaceId", "==", currentSpace.id),
+            where("date", "==", todayId)
+        );
+        const snap = await getDocs(q);
+
+        // Group by hour
+        const hourlyData = new Array(24).fill(0);
+        snap.forEach(doc => {
+            const ts = doc.data().timestamp;
+            if (ts) {
+                const hour = ts.toDate ? ts.toDate().getHours() : new Date(ts).getHours();
+                hourlyData[hour]++;
+            }
+        });
+
+        const ctx = canvas.getContext('2d');
+        if (hourlyChart) hourlyChart.destroy();
+
+        hourlyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+                datasets: [{
+                    label: 'Arrivals',
+                    data: hourlyData,
+                    borderColor: '#00f2ff',
+                    backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: '#666', font: { size: 9 } }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { color: '#666', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    } catch (err) {
+        console.error("Heatmap Update Error:", err);
+    }
+}
+
+async function notifyDiscord(message) {
+    if (!currentSpace?.config?.discordWebhook) return;
+    try {
+        await fetch(currentSpace.config.discordWebhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: message })
+        });
+    } catch (err) {
+        console.error("Discord Notify Error:", err);
+    }
+}
+
+async function notifyTelegram(message) {
+    const { telegramToken, telegramChatId } = currentSpace?.config || {};
+    if (!telegramToken || !telegramChatId) return;
+    try {
+        await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: telegramChatId, text: message, parse_mode: 'Markdown' })
+        });
+    } catch (err) {
+        console.error("Telegram Notify Error:", err);
+    }
+}
+
+async function updateStreak(uid, name) {
+    const userDocRef = doc(db, COLL_USERS, uid);
+    const snap = await getDoc(userDocRef);
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+    const lastDate = data.lastAttendanceDate;
+    const today = new Date().toDateString();
+
+    if (lastDate === today) return; // Already updated today
+
+    let newStreak = (data.streak || 0) + 1;
+    // Check if missed a day (simplified)
+    if (lastDate) {
+        const last = new Date(lastDate);
+        const diff = (new Date(today) - last) / (1000 * 60 * 60 * 24);
+        if (diff > 1) newStreak = 1; // Reset streak
+    }
+
+    await updateDoc(userDocRef, {
+        streak: newStreak,
+        lastAttendanceDate: today
+    });
+
+    if (newStreak % 5 === 0) {
+        showToast(`🔥 ${newStreak} DAY STREAK!`, "success");
+        speak(`Incredible! ${name} is on a ${newStreak} day streak!`);
+    }
+}
+
+// Sync Logic
+async function syncPendingScans() {
+    if (!navigator.onLine) return;
+    try {
+        const pending = await OfflineDB.getPendingScans();
+        if (pending.length === 0) return;
+
+        console.log(`Syncing ${pending.length} pending scans...`);
+        const syncPromises = pending.map(async (scan) => {
+            const { id, ...data } = scan;
+            try {
+                await addDoc(collection(db, COLL_ATTENDANCE), data);
+                await updateDoc(doc(db, COLL_SPACES, data.spaceId), {
+                    [`historyDates.${data.date}`]: true
+                });
+                return id;
+            } catch (e) {
+                console.error("Sync failed for record", id, e);
+                return null;
+            }
+        });
+
+        const syncedIds = (await Promise.all(syncPromises)).filter(id => id !== null);
+        if (syncedIds.length > 0) {
+            await OfflineDB.clearScans(syncedIds);
+            showToast(`Synced ${syncedIds.length} offline scans.`, "success");
+        }
+    } catch (err) {
+        console.error("Global Sync Error:", err);
+    }
+}
+
+window.addEventListener('online', syncPendingScans);
+setInterval(syncPendingScans, 60000); // Also check every minute
 
 // Magic Link Event Listeners
 // Magic Link Event Listeners
