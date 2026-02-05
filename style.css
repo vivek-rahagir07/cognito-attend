@@ -3006,6 +3006,7 @@ button:active,
         margin-top: 0;
     }
 }
+
 /* Camera Toggle Styles */
 .viewfinder-ui.bottom-row {
     position: absolute;
@@ -3034,7 +3035,7 @@ button:active,
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
     font-size: 0.75rem;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     z-index: 100;
 }
 
@@ -3089,4 +3090,173 @@ button:active,
 .offline-content p {
     color: var(--text-muted);
     margin-bottom: 30px;
+}
+
+/* Glitch & HUD Enhancements */
+@keyframes glitch {
+    0% {
+        clip-path: inset(80% 0 0 0);
+        transform: translate(-5px, -5px);
+    }
+
+    10% {
+        clip-path: inset(10% 0 85% 0);
+        transform: translate(5px, 5px);
+    }
+
+    20% {
+        clip-path: inset(55% 0 43% 0);
+        transform: translate(-5px, 0px);
+    }
+
+    30% {
+        clip-path: inset(18% 0 80% 0);
+        transform: translate(5px, 0px);
+    }
+
+    40% {
+        clip-path: inset(50% 0 30% 0);
+        transform: translate(-5px, 5px);
+    }
+
+    50% {
+        clip-path: inset(10% 0 85% 0);
+        transform: translate(5px, -5px);
+    }
+
+    60% {
+        clip-path: inset(15% 0 80% 0);
+        transform: translate(-5px, 0px);
+    }
+
+    70% {
+        clip-path: inset(80% 0 15% 0);
+        transform: translate(5px, 5px);
+    }
+
+    80% {
+        clip-path: inset(40% 0 40% 0);
+        transform: translate(-5px, -5px);
+    }
+
+    90% {
+        clip-path: inset(10% 0 10% 0);
+        transform: translate(5px, 0px);
+    }
+
+    100% {
+        clip-path: inset(80% 0 0 0);
+        transform: translate(-5px, -5px);
+    }
+}
+
+.glitch-effect {
+    position: relative;
+}
+
+.glitch-effect::before,
+.glitch-effect::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: inherit;
+    z-index: -1;
+}
+
+.glitch-effect::before {
+    left: 2px;
+    text-shadow: -2px 0 var(--danger);
+    animation: glitch 0.3s infinite linear alternate-reverse;
+}
+
+.glitch-effect::after {
+    left: -2px;
+    text-shadow: -2px 0 var(--accent);
+    animation: glitch 0.3s infinite linear alternate;
+}
+
+/* Biometric Handshake Success Animation */
+@keyframes handshake-reveal {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+        filter: blur(10px);
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+        filter: blur(0px);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-pulse {
+    animation: success-pulse-glow 0.8s ease-out;
+}
+
+@keyframes success-pulse-glow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 30px rgba(0, 242, 255, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 242, 255, 0);
+    }
+}
+
+.handshake-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(15px);
+    z-index: 10000;
+    animation: handshake-reveal 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+.handshake-icon {
+    font-size: 5rem;
+    color: var(--accent);
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 20px var(--accent));
+}
+
+.handshake-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 0.1em;
+}
+
+.handshake-subtext {
+    font-size: 0.8rem;
+    color: var(--accent);
+    margin-top: 10px;
+    opacity: 0.8;
+}
+
+/* Parallax Variables */
+:root {
+    --parallax-x: 0px;
+    --parallax-y: 0px;
+}
+
+.camera-viewfinder,
+.viewfinder-ui {
+    transform: translate(var(--parallax-x), var(--parallax-y));
+    transition: transform 0.2s ease-out;
 }

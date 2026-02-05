@@ -1675,136 +1675,73 @@ if (btnDeletePerson) {
 }
 
 // Drawing
+function triggerHandshake(name) {
+    const overlay = document.createElement('div');
+    overlay.className = 'handshake-overlay';
+    overlay.innerHTML = `
+        <div class="handshake-icon">🔒</div>
+        <div class="handshake-text">BIOMETRIC LINK SECURED</div>
+        <div class="handshake-subtext">IDENTITY VERIFIED: ${name.toUpperCase()}</div>
+    `;
+    document.body.appendChild(overlay);
 
-function drawCustomFaceBox(ctx, box, label, isMatch, confidence, resultLabel) {
-    const { x, y, width, height } = box;
-    const isUnknown = resultLabel === 'unknown';
-    const color = isMatch ? '#22c55e' : (isUnknown ? '#ef4444' : '#10b981');
-    const cornerSize = 30;
-    const padding = 15;
+    const wrapper = document.querySelector('.camera-wrapper');
+    if (wrapper) wrapper.classList.add('success-pulse');
+
+    CyberAudio.playMatch();
+
+    setTimeout(() => {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+            overlay.remove();
+            if (wrapper) wrapper.classList.remove('success-pulse');
+        }, 500);
+    }, 3000);
+}
+
+function drawHUD(ctx, box, label, distance) {
+    const isMatched = label && label !== 'unknown' && distance <= 0.45;
+    const color = isMatched ? '#00f2ff' : '#10b981';
 
     ctx.strokeStyle = color;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
 
-    // TL/TR/BL/BR Corner brackets implementation...
+    const { x, y, width, height } = box;
+    const pad = 10;
+    const cornerSize = 20;
+
+    // Draw HUD Corners
     const drawCorner = (cx, cy, dx, dy) => {
         ctx.beginPath();
         ctx.moveTo(cx, cy + dy * cornerSize);
         ctx.lineTo(cx, cy);
         ctx.lineTo(cx + dx * cornerSize, cy);
         ctx.stroke();
-        ctx.lineWidth = 1.5;
-        const offset = 8;
-        ctx.beginPath();
-        ctx.moveTo(cx + dx * offset, cy + dy * (cornerSize - 5));
-        ctx.lineTo(cx + dx * offset, cy + dy * offset);
-        ctx.lineTo(cx + dx * (cornerSize - 5), cy + dy * offset);
-        ctx.stroke();
-        ctx.lineWidth = 3;
     };
 
-    drawCorner(x - padding, y - padding, 1, 1);
-    drawCorner(x + width + padding, y - padding, -1, 1);
-    drawCorner(x - padding, y + height + padding, 1, -1);
-    drawCorner(x + width + padding, y + height + padding, -1, -1);
+    drawCorner(x - pad, y - pad, 1, 1);
+    drawCorner(x + width + pad, y - pad, -1, 1);
+    drawCorner(x - pad, y + height + pad, 1, -1);
+    drawCorner(x + width + pad, y + height + pad, -1, -1);
 
-    // Dynamic Data Rings (Rotating around the face)
-    const centerX = x + width / 2;
-    const centerY = y + height / 2;
-    const baseRadius = Math.max(width, height) / 2 + 30;
+    // Label & Badge
+    if (label) {
+        ctx.font = '900 12px "JetBrains Mono"';
+        const displayText = label.toUpperCase();
+        const textWidth = ctx.measureText(displayText).width;
 
-    if (isMatch) {
-        const userData = allUsersData.find(u => u.name === label);
-        const dept = userData ? (userData.course || 'DEPT_01') : 'DEPT_01';
-        const idNo = userData ? (userData.regNo || 'ID_000') : 'ID_000';
-
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        ctx.setLineDash([5, 15]);
-
-        // Ring 1: Name
-        ctx.rotate(hudRotation);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius + 10, 0, Math.PI * 1.5);
-        ctx.strokeStyle = color;
-        ctx.globalAlpha = 0.4;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        ctx.font = '800 10px Inter';
         ctx.fillStyle = color;
-        ctx.fillText(label.toUpperCase(), baseRadius + 15, 0);
+        ctx.fillRect(x - pad, y - pad - 25, textWidth + 20, 20);
 
-        // Ring 2: ID
-        ctx.rotate(-hudRotation * 1.5);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius + 25, 0, Math.PI * 1.2);
-        ctx.stroke();
-        ctx.fillText(`ID: ${idNo}`, baseRadius + 30, 0);
+        ctx.fillStyle = '#000';
+        ctx.fillText(displayText, x - pad + 10, y - pad - 11);
 
-        // Ring 3: Dept
-        ctx.rotate(hudRotation * 0.8);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius + 40, 0, Math.PI * 1.8);
-        ctx.stroke();
-        ctx.fillText(dept.toUpperCase(), baseRadius + 45, 0);
-
-        ctx.restore();
-        ctx.setLineDash([]);
-        ctx.globalAlpha = 1.0;
-    }
-
-    // Biometric Barcode (Right Side)
-    if (isMatch || isUnknown) {
-        const barcodeX = x + width + padding + 40;
-        const barcodeY = y;
-        const barcodeHeight = height;
-
-        ctx.save();
-        ctx.globalAlpha = 0.6;
-        ctx.translate(barcodeX, barcodeY);
-
-        for (let i = 0; i < barcodeHeight; i += 4) {
-            const bWidth = Math.random() > 0.5 ? 20 : 10;
-            const flicker = Math.random() > 0.1 ? 1 : 0.2;
-            ctx.fillStyle = color;
-            ctx.globalAlpha = flicker * 0.6;
-            ctx.fillRect(0, i, bWidth, 2);
-        }
-
-        // Vertical Rotating Bio-Tag
-        ctx.rotate(Math.PI / 2);
-        ctx.font = '900 9px monospace';
+        // Distance Percentage for tech look
+        const matchPercent = Math.round((1 - distance) * 100);
         ctx.fillStyle = color;
-        const bioText = isMatch ? `BIOSEC_${label.slice(0, 3).toUpperCase()}_${Math.floor(Date.now() / 1000).toString().slice(-4)}` : "ENCRYPTION_ERROR";
-        ctx.fillText(bioText, 0, -5);
-
-        ctx.restore();
-    }
-
-    // Status Pill implementation remains...
-    if (isMatch || isUnknown) {
-        ctx.font = '900 13px Inter';
-        const statusText = isMatch ? `${label.toUpperCase()} [${confidence}%]` : 'UNKNOWN_ACCESS_DENIED';
-        const textWidth = ctx.measureText(statusText).width;
-        const pillWidth = textWidth + 30;
-        const pillHeight = 26;
-        const pillX = x + (width / 2) - (pillWidth / 2);
-        const pillY = y - padding - pillHeight - 5;
-
-        // Dark Green for matches, original color (red) for unknown
-        const bgColor = isMatch ? '#064e3b' : color;
-        const textColor = isMatch ? '#fff' : '#000';
-
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = bgColor;
-        ctx.fillStyle = bgColor;
-        ctx.beginPath();
-        ctx.roundRect(pillX, pillY, pillWidth, pillHeight, 13);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = textColor;
-        ctx.fillText(statusText, pillX + 15, pillY + 18);
+        ctx.font = '600 10px "JetBrains Mono"';
+        ctx.fillText(`${matchPercent}% SECURED`, x - pad, y + height + pad + 15);
     }
 }
 
@@ -1940,6 +1877,7 @@ video.addEventListener('play', () => {
                 if (scanIndicator) {
                     scanIndicator.innerHTML = `🛰️ SCANNING`;
                     scanIndicator.style.display = 'block';
+                    document.querySelector('.camera-viewfinder')?.classList.add('glitch-effect');
                 }
 
                 detections.forEach((detection, i) => {
@@ -1965,6 +1903,7 @@ video.addEventListener('play', () => {
                 window.lastResults = [];
                 wasFaceDetected = false;
                 if (scanIndicator) scanIndicator.style.display = 'none';
+                document.querySelector('.camera-viewfinder')?.classList.remove('glitch-effect');
 
                 // Slowly decay history only when nothing is detected to keep it stable
                 for (let k in detectionHistory) {
@@ -1994,18 +1933,23 @@ video.addEventListener('play', () => {
         hudRotation += 0.02; // Increment HUD rotation
 
         if (window.lastDetections && window.lastDetections.length > 0) {
+            // HUD Parallax Logic
+            const primaryDetection = window.lastDetections[0].detection.box;
+            const centerX = primaryDetection.x + primaryDetection.width / 2;
+            const centerY = primaryDetection.y + primaryDetection.height / 2;
+
+            // Calculate offset from canvas center
+            const offsetX = (centerX - canvas.width / 2) * 0.05;
+            const offsetY = (centerY - canvas.height / 2) * 0.05;
+
+            document.documentElement.style.setProperty('--parallax-x', `${-offsetX}px`);
+            document.documentElement.style.setProperty('--parallax-y', `${-offsetY}px`);
+
             window.lastDetections.forEach((detection, i) => {
                 const result = window.lastResults[i];
                 if (!result) return;
 
                 const box = detection.detection.box;
-                const confidence = Math.round((1 - result.distance) * 100);
-                const isAttendanceMatch = result.label !== 'unknown' && result.distance <= 0.6;
-                const isPotentialMatch = result.label !== 'unknown' && result.distance <= 0.6;
-                const displayLabel = isPotentialMatch ? result.label : 'SEARCHING...';
-
-                const isUnknown = result.label === 'unknown';
-                const statusColor = isAttendanceMatch ? '#22c55e' : (isUnknown ? '#ef4444' : '#10b981');
 
                 let drawBox = box;
                 if (isPotentialMatch) {
@@ -2034,6 +1978,7 @@ video.addEventListener('play', () => {
 
 
 async function handleCameraRegistration() {
+    if (isCameraOff) return alert("Please turn the camera ON to register.");
     if (!currentUser || !currentSpace) return alert("System not ready.");
 
     const nameEl = document.getElementById('reg-name');
@@ -2187,6 +2132,12 @@ async function markAttendance(name) {
         const timeStr = new Date().toLocaleTimeString();
         addLiveLogEntry(name, timeStr);
 
+        // Capture snapshot for admin verification
+        const snapshot = captureFacePhoto(video, window.lastDetections?.find(d => {
+            const res = faceMatcher?.findBestMatch(d.descriptor);
+            return res && res.label === name;
+        })?.detection.box || { x: 0, y: 0, width: video.videoWidth, height: video.videoHeight });
+
         // 2. ONLY mark attendance if not already marked today
         if (userData.lastAttendance === todayDate) {
             // Silently return for DB update, but we still log the sighting above
@@ -2203,7 +2154,7 @@ async function markAttendance(name) {
         attendanceCooldowns[name] = now;
 
         if (navigator.vibrate) navigator.vibrate(100);
-        showToast(`Attendance marked: ${name}`, 'success');
+        triggerHandshake(name);
 
         // Trigger Digital ID Card
         showIdCard(userData);
@@ -2228,7 +2179,8 @@ async function markAttendance(name) {
             regNo: userData.regNo || '',
             course: userData.course || '',
             date: dateId,
-            timestamp: new Date()
+            timestamp: new Date(),
+            snapshot: snapshot // New: store snapshot for verification
         });
 
         await updateDoc(doc(db, COLL_SPACES, currentSpace.id), {
