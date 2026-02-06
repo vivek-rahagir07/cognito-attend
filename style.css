@@ -3090,3 +3090,64 @@ button:active,
     color: var(--text-muted);
     margin-bottom: 30px;
 }
+
+/* Tactical Command Map Styling */
+#tactical-map {
+    width: 100%;
+    height: 100%;
+    filter: invert(100%) hue-rotate(180deg) brightness(0.6) contrast(1.4);
+    background: #000;
+}
+
+.map-scan-line {
+    position: absolute;
+    width: 100%;
+    height: 100px;
+    background: linear-gradient(to bottom, transparent, rgba(0, 242, 255, 0.1), transparent);
+    z-index: 1002;
+    pointer-events: none;
+    animation: map-scan 4s linear infinite;
+}
+
+@keyframes map-scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(400%); }
+}
+
+/* Custom Tactical Pings */
+.tactical-ping {
+    width: 20px;
+    height: 20px;
+    background: rgba(0, 242, 255, 0.4);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 15px var(--accent);
+}
+
+.tactical-ping::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    animation: ping-pulse 2s ease-out infinite;
+}
+
+@keyframes ping-pulse {
+    0% { transform: scale(3); opacity: 0; }
+}
+
+.tactical-label {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translateY(-25px);
+    text-align: center;
+}

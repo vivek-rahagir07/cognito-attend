@@ -91,6 +91,7 @@ const dynamicFieldsContainer = document.getElementById('dynamic-fields-container
 const configForm = document.getElementById('config-form');
 const attendInfo = document.getElementById('attend-info');
 const regForm = document.getElementById('reg-form');
+const tacticalPanel = document.getElementById('tactical-panel');
 const btnHistory = document.getElementById('btn-history');
 const historyModal = document.getElementById('history-modal');
 const btnCloseHistory = document.getElementById('btn-close-history');
@@ -131,6 +132,8 @@ let currentNonce = null;
 let activeAttendanceTab = 'present';
 let lastPresentHTML = '';
 let lastAbsentHTML = '';
+let tacticalMap = null;
+let currentMapMarkers = [];
 
 const smoothBoxes = {};
 
@@ -2241,6 +2244,13 @@ async function markAttendance(name) {
             setTimeout(() => wrapper.classList.remove('success-pulse'), 400);
         }
 
+        // Add Tactical Map Ping
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                addTacticalPing(name, [pos.coords.latitude, pos.coords.longitude]);
+            });
+        }
+
     } catch (err) {
         console.error("Attendance Update Error:", err);
     }
@@ -2337,6 +2347,9 @@ document.getElementById('btn-mode-attend').addEventListener('click', () => setMo
 document.getElementById('btn-mode-reg').addEventListener('click', () => setMode('registration'));
 document.getElementById('btn-mode-analytics').addEventListener('click', () => setMode('analytics'));
 document.getElementById('btn-mode-config').addEventListener('click', () => setMode('config'));
+if (document.getElementById('btn-mode-tactical')) {
+    document.getElementById('btn-mode-tactical').addEventListener('click', () => setMode('tactical'));
+}
 
 const mobileNavItems = document.querySelectorAll('.nav-item');
 mobileNavItems.forEach(item => {
@@ -2462,10 +2475,11 @@ function setMode(mode) {
     currentMode = mode;
 
     // UI elements update
-    [regForm, attendInfo, configForm, analyticsPanel].forEach(el => el && el.classList.add('hidden'));
+    [regForm, attendInfo, configForm, analyticsPanel, tacticalPanel].forEach(el => el && el.classList.add('hidden'));
     [
         document.getElementById('btn-mode-attend'),
         document.getElementById('btn-mode-reg'),
+        document.getElementById('btn-mode-tactical'),
         document.getElementById('btn-mode-config'),
         document.getElementById('btn-mode-analytics')
     ].forEach(btn => btn && btn.classList.remove('active'));
@@ -2480,11 +2494,11 @@ function setMode(mode) {
         document.getElementById('btn-mode-config').classList.add('active');
         statusBadge.innerText = "Configuration";
         syncConfigToggles();
-    } else if (mode === 'analytics') {
-        analyticsPanel.classList.remove('hidden');
-        document.getElementById('btn-mode-analytics').classList.add('active');
-        statusBadge.innerText = "Analytics & Logs";
-        renderPeopleManagement();
+    } else if (mode === 'tactical') {
+        tacticalPanel.classList.remove('hidden');
+        document.getElementById('btn-mode-tactical').classList.add('active');
+        statusBadge.innerText = "Tactical Command Map";
+        initTacticalMap();
     } else {
         isAIPaused = false; // Reactivate background processing
         attendInfo.classList.remove('hidden');
@@ -2910,4 +2924,60 @@ function init3DFace(containerId) {
         camera3D.updateProjectionMatrix();
         renderer3D.setSize(container.offsetWidth, container.offsetHeight);
     });
+}
+
+// Tactical Map Core
+
+function initTacticalMap() {
+    if (tacticalMap) {
+        setTimeout(() => tacticalMap.invalidateSize(), 100);
+        return;
+    }
+
+    // Default to a generic location if GPS not ready
+    const defaultLoc = [20.5937, 78.9629]; // India center
+
+    tacticalMap = L.map('tactical-map', {
+        zoomControl: false,
+        attributionControl: false
+    }).setView(defaultLoc, 13);
+
+    // Dark Map Style (using CartoDB Dark Matter tiles which look more tactical)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19
+    }).addTo(tacticalMap);
+
+    // Initial markers for all students (mock or from DB)
+    renderActiveAreaMarkers();
+}
+
+function addTacticalPing(name, coords) {
+    if (!tacticalMap) return;
+
+    // Center map slightly on new ping
+    tacticalMap.panTo(coords);
+
+    const pingIcon = L.divIcon({
+        className: 'tactical-ping-container',
+        html: `<div class="tactical-ping"></div><div class="tactical-label">${name.toUpperCase()}</div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+
+    const marker = L.marker(coords, { icon: pingIcon }).addTo(tacticalMap);
+    currentMapMarkers.push(marker);
+
+    // Play tactile sound if audio is initialized
+    if (window.CyberAudio) CyberAudio.playBlip();
+
+    // Auto-remove ping after 15 seconds to keep map clean
+    setTimeout(() => {
+        tacticalMap.removeLayer(marker);
+        currentMapMarkers = currentMapMarkers.filter(m => m !== marker);
+    }, 15000);
+}
+
+function renderActiveAreaMarkers() {
+    if (!allUsersData || !tacticalMap) return;
+    // Implementation for static presence markers if needed
 }
