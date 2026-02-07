@@ -2531,27 +2531,6 @@ function addLiveLogEntry(name, time) {
     }
 }
 
-// Auto-save Quick Settings
-document.querySelectorAll('.quick-actions-bar .field-toggle').forEach(el => {
-    el.addEventListener('change', () => {
-        if (!currentSpace) return;
-        const field = el.dataset.field;
-        const val = el.checked;
-
-        // Update local state and DB
-        currentSpace.config[field] = val;
-        updateDoc(doc(db, COLL_SPACES, currentSpace.id), {
-            [`config.${field}`]: val
-        }).then(() => {
-            showToast(`Setting updated: ${field}`, "info");
-            updateSessionVisibility();
-        }).catch(err => {
-            console.error("Quick Save Error:", err);
-            showToast("Failed to save setting", "error");
-        });
-    });
-});
-
 function updateSessionVisibility() {
     const container = document.getElementById('session-selector-container');
     if (container) {
