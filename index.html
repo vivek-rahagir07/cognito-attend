@@ -369,6 +369,24 @@
                             Enable Multi-Session (Morning, Afternoon, etc.)</label>
                     </div>
 
+                    <div id="session-selector-container" class="form-group hidden"
+                        style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                        <h3>Active Session</h3>
+                        <div class="session-selector-wrapper"
+                            style="width: 100%; justify-content: space-between; padding: 10px;">
+                            <select id="session-select" class="session-select" style="flex: 1; font-size: 0.9rem;">
+                                <option value="Morning">🌅 Morning Session</option>
+                                <option value="Afternoon">☀️ Afternoon Session</option>
+                                <option value="Evening">🌙 Evening Session</option>
+                                <option value="Custom">✏️ Custom...</option>
+                            </select>
+                            <input type="text" id="custom-session-name" class="custom-session-input hidden"
+                                placeholder="Name..." style="width: 120px;">
+                        </div>
+                        <small style="color: var(--text-muted); font-size: 0.7rem;">Select which session's attendance
+                            you are currently taking.</small>
+                    </div>
+
                     <h3 style="margin-top: 15px;">Geofencing Settings</h3>
                     <div class="form-group"
                         style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
@@ -455,16 +473,6 @@
                             <div style="display: flex; gap: 10px; align-items: center;">
                                 <span id="tab-present" class="attendance-tab active">Present</span>
                                 <span id="tab-absent" class="attendance-tab">Absent</span>
-                                <div id="session-selector-container" class="session-selector-wrapper hidden">
-                                    <select id="session-select" class="session-select">
-                                        <option value="Morning">🌅 Morning</option>
-                                        <option value="Afternoon">☀️ Afternoon</option>
-                                        <option value="Evening">🌙 Evening</option>
-                                        <option value="Custom">✏️ Custom...</option>
-                                    </select>
-                                    <input type="text" id="custom-session-name" class="custom-session-input hidden"
-                                        placeholder="Session name...">
-                                </div>
                             </div>
                             <div style="display: flex; gap: 6px;">
                                 <button id="btn-export" class="btn-export">📊 CSV</button>
