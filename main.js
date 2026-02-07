@@ -2273,18 +2273,22 @@ async function unmarkAttendance(uid, name) {
             const todayDate = new Date().toDateString();
 
             // Revert user status
+            const dateId = new Date().toISOString().split('T')[0];
+            const sessionRecordId = currentSpace?.config?.multiSessionEnabled ? `${dateId}_${currentSession}` : dateId;
+
             await updateDoc(userDocRef, {
-                lastAttendance: "removed", // or null, using "removed" to distinguish from never attended
-                attendanceCount: increment(-1)
+                lastAttendance: "removed",
+                attendanceCount: increment(-1),
+                [`markedSessions.${sessionRecordId}`]: deleteField()
             });
 
             // Remove from History Collection for today
-            const dateId = new Date().toISOString().split('T')[0];
             const q = query(
                 collection(db, COLL_ATTENDANCE),
                 where("spaceId", "==", currentSpace.id),
                 where("userId", "==", uid),
-                where("date", "==", dateId)
+                where("date", "==", dateId),
+                where("session", "==", currentSession)
             );
 
             const querySnapshot = await getDocs(q);
@@ -2296,8 +2300,9 @@ async function unmarkAttendance(uid, name) {
 
             showToast(`Attendance removed for ${name}`);
 
-            // Clean up cooldown so they can be marked again immediately if needed
-            delete attendanceCooldowns[name];
+            // Clean up cooldown
+            const sessionKey = `${name}_${currentSession}`;
+            delete attendanceCooldowns[sessionKey];
 
         } catch (err) {
             console.error("Unmark Attendance Error:", err);
@@ -2585,7 +2590,16 @@ async function exportToExcel() {
             const data = snap.data();
             if (!attendanceMap[data.userId]) attendanceMap[data.userId] = {};
 
-            const timeStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'P';
+            const timestamp = data.timestamp;
+            let timeStr = 'P';
+            if (timestamp) {
+                try {
+                    const dateObj = timestamp.toDate ? timestamp.toDate() : (timestamp instanceof Date ? timestamp : new Date(timestamp));
+                    timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                } catch (e) {
+                    timeStr = 'P';
+                }
+            }
 
             const sessionSuffix = data.session ? ` (${data.session})` : '';
             const colName = `${data.date}${sessionSuffix}`;
@@ -2626,7 +2640,11 @@ async function exportToExcel() {
                 row.push(attendanceMap[user.id]?.[col] || '-');
             });
 
-            csvContent += row.map(cell => `"${cell}"`).join(",") + "\n";
+            const escapedRow = row.map(cell => {
+                const s = String(cell).replace(/"/g, '""');
+                return `"${s}"`;
+            });
+            csvContent += escapedRow.join(",") + "\n";
         });
 
         // Summary
@@ -2634,7 +2652,7 @@ async function exportToExcel() {
         sortedCols.forEach(col => {
             summaryRow.push(colTotals[col] || 0);
         });
-        csvContent += summaryRow.map(cell => `"${cell}"`).join(",") + "\n";
+        csvContent += summaryRow.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",") + "\n";
 
         // 6. Trigger Download as .csv (Excel compatible)
         const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
