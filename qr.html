@@ -762,13 +762,13 @@
                 await updateDoc(spaceRef, { qrScanCount: increment(1) });
 
                 const config = spaceData.config || {};
-                const gender = document.getElementById('gender').value;
-                const regNo = config.regNo ? document.getElementById('regNo').value.trim() : '';
-                const course = config.course ? document.getElementById('course').value.trim() : '';
-                const email = config.email ? document.getElementById('email').value.trim() : '';
-                const phone = config.phone ? document.getElementById('phone').value.trim() : '';
-                const bloodGroup = config.bloodGroup ? document.getElementById('bloodGroup').value.trim() : '';
-                const weight = config.weight ? document.getElementById('weight').value.trim() : '';
+                const gender = document.getElementById('gender')?.value || 'male';
+                const regNo = (config.regNo && document.getElementById('regNo')) ? document.getElementById('regNo').value.trim() : '';
+                const course = (config.course && document.getElementById('course')) ? document.getElementById('course').value.trim() : '';
+                const email = (config.email && document.getElementById('email')) ? document.getElementById('email').value.trim() : '';
+                const phone = (config.phone && document.getElementById('phone')) ? document.getElementById('phone').value.trim() : '';
+                const bloodGroup = (config.bloodGroup && document.getElementById('bloodGroup')) ? document.getElementById('bloodGroup').value.trim() : '';
+                const weight = (config.weight && document.getElementById('weight')) ? document.getElementById('weight').value.trim() : '';
 
                 const q = query(collection(db, 'users'), where("spaceId", "==", spaceId), where("name", "==", name));
                 const userSnap = await getDocs(q);
@@ -813,7 +813,7 @@
         }
 
         async function recordAttendanceHistory(userId, name, regNo, course, gender) {
-            const dateId = new Date().toISOString().split('T')[0];
+            const dateId = getLocalYYYYMMDD();
             await addDoc(collection(db, 'attendance'), {
                 spaceId: spaceId,
                 userId: userId,
@@ -827,6 +827,11 @@
             await updateDoc(doc(db, 'spaces', spaceId), {
                 [`historyDates.${dateId}`]: true
             });
+        }
+
+        function getLocalYYYYMMDD() {
+            const d = new Date();
+            return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
         }
 
         function finishSubmit(name, gender, spaceData) {

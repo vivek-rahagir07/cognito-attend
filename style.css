@@ -599,43 +599,6 @@ input:focus {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Session Selector */
-.session-selector-wrapper {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 2px 8px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.session-select {
-    background: transparent;
-    border: none;
-    color: var(--accent);
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    outline: none;
-    padding: 4px 0;
-}
-
-.session-select option {
-    background: #111;
-    color: #fff;
-}
-
-.custom-session-input {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--accent);
-    border-radius: 8px;
-    padding: 4px 8px;
-    font-size: 0.7rem;
-    color: #fff;
-    width: 100px;
-}
-
 .attendance-tab {
     cursor: pointer;
     padding: 4px 10px;
@@ -1403,54 +1366,28 @@ input:focus {
     width: auto;
 }
 
-/* Toggle Group Consolidation */
 .toggle-group {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 12px;
-    margin: 15px 0;
-    background: rgba(255, 255, 255, 0.02);
-    padding: 15px;
-    border-radius: 16px;
-    border: 1px solid var(--border);
+    margin: 10px 0;
 }
 
 .toggle-group label {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 10px;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     cursor: pointer;
-    padding: 10px 14px;
+    padding: 8px 12px;
     background: #111;
     border-radius: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    color: var(--text-muted);
-    line-height: 1.4;
-    user-select: none;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.2s;
 }
 
 .toggle-group label:hover {
     background: #1a1a1a;
-    border-color: var(--primary);
-    color: #fff;
-    transform: translateX(4px);
-}
-
-.toggle-group label:has(input:checked) {
-    background: rgba(99, 102, 241, 0.1);
-    border-color: var(--primary);
-    color: #fff;
-}
-
-.toggle-group input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    margin-top: 2px;
-    cursor: pointer;
-    accent-color: var(--primary);
-    flex-shrink: 0;
 }
 
 @keyframes fadeIn {
@@ -2546,7 +2483,38 @@ button:active,
 
 
 
-/* Removed duplicate toggle-group definition to fix UI layout issues */
+.toggle-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.toggle-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.toggle-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+@media (max-width: 480px) {
+    .toggle-group {
+        grid-template-columns: 1fr;
+    }
+}
 
 @keyframes blink {
 
@@ -3038,7 +3006,6 @@ button:active,
         margin-top: 0;
     }
 }
-
 /* Camera Toggle Styles */
 .viewfinder-ui.bottom-row {
     position: absolute;
@@ -3067,7 +3034,7 @@ button:active,
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
     font-size: 0.75rem;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     z-index: 100;
 }
 

@@ -119,7 +119,6 @@ let currentHistoryDate = '';
 
 let currentMode = 'attendance';
 let currentSpace = null;
-let currentSession = 'Morning';
 let labeledDescriptors = [];
 let faceMatcher = null;
 let isModelsLoaded = false;
@@ -135,8 +134,8 @@ let lastAbsentHTML = '';
 
 const smoothBoxes = {};
 
-const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
-const FALLBACK_MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights/';
+const FALLBACK_MODEL_URL = 'https://cdn.jsdelivr.net/gh/vladmandic/face-api@master/model/';
 
 const LERP_FACTOR = 0.4;
 
@@ -346,10 +345,6 @@ async function handleJoin() {
             if (doc.data().password === password) {
                 found = true;
                 enterSpace(doc.id, doc.data());
-                // The following lines were part of the requested change, but 'snapshot' is undefined here.
-                // allUsersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // renderAttendanceList();
-                // updateSessionVisibility();
             }
         });
 
@@ -726,7 +721,9 @@ async function openHistoryModal() {
             btn.className = 'btn-date';
 
             // Format date for display: "14 Jan 2026"
-            const d = new Date(date);
+            // Use manual split to avoid UTC shift issues with new Date(date)
+            const parts = date.split('-');
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
             const displayDate = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
             btn.innerText = displayDate;
@@ -839,12 +836,11 @@ if (btnExportHistory) {
             const time = r.timestamp ? (r.timestamp.toDate ? r.timestamp.toDate() : new Date(r.timestamp)).toLocaleTimeString() : 'N/A';
             csv += `"${r.name}","${r.regNo || ''}","${r.course || ''}","${time}"\n`;
         });
-
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `attendance_${currentSpace.name.replace(/\s+/g, '_')}_${currentHistoryDate}.csv`;
+        link.download = `attendance_${currentSpace.name.replace(/\s+/g, '_')}_${currentHistoryDate || getLocalYYYYMMDD()}.csv`;
         link.click();
     });
 }
@@ -877,122 +873,116 @@ async function initSystem() {
     }
     console.log("Initializing Attendance SystemAI...");
 
-    // 1. Proactively start camera (Don't wait for models)
-    if (!video.srcObject) startVideo();
+    // Start everything in parallel
+    const modelsPromise = (async () => {
+        let loaded = await loadModels(MODEL_URL);
+        if (!loaded) {
+            console.log("Trying fallback model URL...");
+            loaded = await loadModels(FALLBACK_MODEL_URL);
+        }
+        return loaded;
+    })();
 
-    // Check if we are on file:// protocol, which often breaks modules/fetch
-    if (window.location.protocol === 'file:') {
-        console.warn("Running on file:// protocol. This may cause CORS issues with module imports and fetch requests.");
-        // Try to explain to the user if it gets stuck
-        setTimeout(() => {
-            if (!isModelsLoaded) {
-                loadingText.innerHTML = "Stuck Loading? <br><small>Browsers often block local file access. <br>Try opening this folder in VS Code and using 'Live Server'.</small>";
+    // Initialize camera immediately
+    const cameraPromise = startVideo();
+
+    try {
+        const [modelsLoaded, cameraStarted] = await Promise.all([modelsPromise, cameraPromise]);
+
+        if (modelsLoaded) {
+            console.log("Models and Hardware ready.");
+            isModelsLoaded = true;
+            // Reveal UI immediately when both are ready
+            loadingOverlay.style.display = "none";
+            const face3D = document.getElementById('face-3d-container');
+            if (face3D) {
+                face3D.classList.add('fade-out');
+                setTimeout(() => face3D.style.display = 'none', 800);
             }
-        }, 8000);
-    }
-
-    let loaded = await loadModels(MODEL_URL);
-    if (!loaded) {
-        console.log("Trying fallback model URL...");
-        loaded = await loadModels(FALLBACK_MODEL_URL);
-    }
-
-    if (loaded) {
-        console.log("Models Loaded successfully.");
-        isModelsLoaded = true;
-        // If camera is already ready, the overlay might already be hidden by startVideo
-    } else {
-        loadingText.innerHTML = "Error: Could not load AI models. <br><small>Please check your internet connection.</small>";
-        statusBadge.innerText = "Load Error";
+            statusBadge.innerText = "System Active";
+            statusBadge.className = "status-badge status-ready";
+        } else {
+            throw new Error("Could not load AI models.");
+        }
+    } catch (err) {
+        console.error("System Init Error:", err);
+        loadingText.innerHTML = `Error: ${err.message} <br><small>Troubleshoot your connection or camera permissions.</small>`;
+        statusBadge.innerText = "Init Error";
         statusBadge.className = "status-badge status-error";
 
-        // Add a retry button to the UI
-        const retryBtn = document.createElement('button');
-        retryBtn.innerText = "Retry Loading";
-        retryBtn.className = "btn-primary";
-        retryBtn.style.marginTop = "10px";
-        retryBtn.onclick = () => window.location.reload();
-        loadingOverlay.appendChild(retryBtn);
+        // Add a retry button to the UI if not already there
+        if (!loadingOverlay.querySelector('.btn-retry')) {
+            const retryBtn = document.createElement('button');
+            retryBtn.innerText = "Retry Loading";
+            retryBtn.className = "btn-primary btn-retry";
+            retryBtn.style.marginTop = "10px";
+            retryBtn.onclick = () => window.location.reload();
+            loadingOverlay.appendChild(retryBtn);
+        }
     }
 }
 
 // Init
 
 function startVideo() {
-    isCameraOff = false;
-    if (cameraOfflineOverlay) cameraOfflineOverlay.classList.add('hidden');
-    if (btnToggleCamera) {
-        btnToggleCamera.classList.remove('offline');
-        const statusText = btnToggleCamera.querySelector('.cam-status-text');
-        if (statusText) statusText.innerText = "CAMERA ON";
-    }
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        loadingText.innerHTML = `<span style="color:#ef4444; font-weight:800;">Secure Context Required</span><br><small>Camera access requires HTTPS or localhost.</small>`;
-        statusBadge.innerText = "Security Error";
-        return;
-    }
-
-    statusBadge.innerText = "Accessing Camera...";
-    loadingText.innerText = "Requesting Camera Access...";
-
-    const constraints = {
-        video: {
-            facingMode: "user",
-            width: { ideal: isMobile ? 640 : 1280 },
-            height: { ideal: isMobile ? 480 : 720 }
+    return new Promise((resolve, reject) => {
+        isCameraOff = false;
+        if (cameraOfflineOverlay) cameraOfflineOverlay.classList.add('hidden');
+        if (btnToggleCamera) {
+            btnToggleCamera.classList.remove('offline');
+            const statusText = btnToggleCamera.querySelector('.cam-status-text');
+            if (statusText) statusText.innerText = "CAMERA ON";
         }
-    };
 
-    const handleStream = (stream) => {
-        console.log("Camera access granted.");
-        video.srcObject = stream;
-        video.onloadedmetadata = () => {
-            video.play().then(() => {
-                console.log("Video playing.");
-                loadingOverlay.style.display = "none";
-                const face3D = document.getElementById('face-3d-container');
-                if (face3D) {
-                    face3D.classList.add('fade-out');
-                    setTimeout(() => face3D.style.display = 'none', 800);
-                }
-                statusBadge.innerText = "System Active";
-                statusBadge.className = "status-badge status-ready";
-            }).catch(err => {
-                console.error("Video Play Error:", err);
-                loadingText.innerHTML = "Click to Start Camera";
-                const startBtn = document.createElement('button');
-                startBtn.innerText = "Start Camera";
-                startBtn.className = "btn-primary";
-                startBtn.style.marginTop = "15px";
-                startBtn.onclick = () => {
-                    video.play();
-                    loadingOverlay.style.display = "none";
-                };
-                loadingOverlay.appendChild(startBtn);
-            });
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            loadingText.innerHTML = `<span style="color:#ef4444; font-weight:800;">Secure Context Required</span><br><small>Camera access requires HTTPS or localhost.</small>`;
+            statusBadge.innerText = "Security Error";
+            reject(new Error("Secure context required"));
+            return;
+        }
+
+        statusBadge.innerText = "Accessing Camera...";
+
+        const constraints = {
+            video: {
+                facingMode: "user",
+                width: { ideal: isMobile ? 640 : 1280 },
+                height: { ideal: isMobile ? 480 : 720 }
+            }
         };
-    };
 
-    navigator.mediaDevices.getUserMedia(constraints)
-        .then(handleStream)
-        .catch(err => {
-            console.warn("Primary constraints failed, retrying generic...", err);
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(handleStream)
-                .catch(e => {
-                    console.error("Camera Error:", e);
-                    loadingText.innerHTML = `<span style="color:#ef4444; font-weight:800;">Camera Error</span><br><small>${e.message}</small>`;
-                    statusBadge.innerText = "Camera Error";
-                    loadingOverlay.style.background = "rgba(10, 0, 0, 0.9)";
-                    const retryBtn = document.createElement('button');
-                    retryBtn.innerText = "Retry Camera";
-                    retryBtn.className = "btn-primary";
-                    retryBtn.style.marginTop = "15px";
-                    retryBtn.onclick = () => startVideo();
-                    loadingOverlay.appendChild(retryBtn);
-                });
-        });
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then(stream => {
+                console.log("Camera access granted.");
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play().then(() => {
+                        console.log("Video playing.");
+                        // We don't hide loading overlay here anymore; initSystem handles complete ready state
+                        resolve(true);
+
+                        // If models are already loaded, we can actually hide it
+                        if (isModelsLoaded || !loadingOverlay.style.display || loadingOverlay.style.display === "none") {
+                            loadingOverlay.style.display = "none";
+                            const face3D = document.getElementById('face-3d-container');
+                            if (face3D) {
+                                face3D.classList.add('fade-out');
+                                setTimeout(() => face3D.style.display = 'none', 800);
+                            }
+                            statusBadge.innerText = "System Active";
+                            statusBadge.className = "status-badge status-ready";
+                        }
+                    }).catch(err => {
+                        console.error("Video Play Error:", err);
+                        reject(err);
+                    });
+                };
+            })
+            .catch(err => {
+                console.error("Camera Error:", err);
+                reject(err);
+            });
+    });
 }
 
 function stopVideo() {
@@ -1151,7 +1141,7 @@ async function saveSpaceConfig() {
 
     try {
         await updateDoc(doc(db, COLL_SPACES, currentSpace.id), {
-            config: { ...newConfig, examMode: examMode, multiSessionEnabled: newConfig.multiSessionEnabled || false },
+            config: { ...newConfig, examMode: examMode },
             geofencing: {
                 enabled: geofenceEnabled,
                 radius: geofenceRadius,
@@ -1162,7 +1152,6 @@ async function saveSpaceConfig() {
 
         // Update local state
         currentSpace.config = { ...newConfig, examMode: examMode };
-        updateSessionVisibility();
         currentSpace.config.qrRefreshInterval = configQrRefresh.value;
         currentSpace.geofencing = { enabled: geofenceEnabled, radius: geofenceRadius, center: lat && lng ? { lat, lng } : null };
 
@@ -1285,6 +1274,7 @@ function startDbListener() {
         let presentAttendeesHTML = '';
         let absentAttendeesHTML = '';
         const todayStr = new Date().toDateString();
+        const localToday = getLocalYYYYMMDD();
 
         snapshot.forEach(doc => {
             const data = doc.data();
@@ -1361,35 +1351,115 @@ function startDbListener() {
         lastPresentHTML = presentAttendeesHTML;
         lastAbsentHTML = absentAttendeesHTML;
 
+        // Automatically update history if we are viewing today's records
+        if (currentHistoryDate === localToday) {
+            // Filter allUsersData for today's records based on lastAttendance
+            const todayRecords = tempAllData.filter(u => u.lastAttendance === todayStr);
+            // Sort by name as done in loadHistoryForDate
+            todayRecords.sort((a, b) => a.name.localeCompare(b.name));
+            currentHistoryRecords = todayRecords;
+            renderHistoryTable(todayRecords);
+
+            const btnExportHistoryPdf = document.getElementById('btn-export-history-pdf');
+            const showBtns = todayRecords.length > 0 ? 'block' : 'none';
+            btnExportHistory.style.display = showBtns;
+            if (btnExportHistoryPdf) btnExportHistoryPdf.style.display = showBtns;
+        }
+
+        // Proactive check: Ensure today's date exists in historyDates if there's presence
+        if (presentTodayCount > 0 && currentSpace) {
+            const spaceRef = doc(db, COLL_SPACES, currentSpace.id);
+            getDoc(spaceRef).then(snap => {
+                if (snap.exists()) {
+                    const historyDates = snap.data().historyDates || {};
+                    if (!historyDates[localToday]) {
+                        console.log("Fixing missing history date:", localToday);
+                        updateDoc(spaceRef, { [`historyDates.${localToday}`]: true });
+                    }
+                }
+            });
+        }
+
+        // Run one-time sync for this session if not already done
+        if (!currentSpace._historySynced) {
+            syncHistoryDates();
+            currentSpace._historySynced = true;
+        }
+
         // Render based on active tab
         renderAttendanceList();
         renderPeopleManagement();
     });
+}
 
-    // Add event delegation for manual marking
-    if (!todayListContainer._listenerAdded) {
-        todayListContainer.addEventListener('click', (e) => {
-            const btnMark = e.target.closest('.btn-mark-present');
-            const btnUndo = e.target.closest('.btn-undo-attendance');
+function getLocalYYYYMMDD() {
+    const d = new Date();
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+}
 
-            if (btnMark) {
-                const item = btnMark.closest('.list-item');
-                const uid = item.dataset.uid;
-                const name = item.dataset.name;
-                if (uid && name) {
-                    markAttendance(name);
-                }
-            } else if (btnUndo) {
-                const item = btnUndo.closest('.list-item');
-                const uid = item.dataset.uid;
-                const name = item.dataset.name;
-                if (uid && name) {
-                    unmarkAttendance(uid, name);
-                }
+async function syncHistoryDates() {
+    if (!currentSpace) return;
+    console.log("Starting History Sync for:", currentSpace.name);
+    try {
+        const q = query(collection(db, COLL_ATTENDANCE), where("spaceId", "==", currentSpace.id));
+        const snap = await getDocs(q);
+        const uniqueDates = new Set();
+        snap.forEach(doc => {
+            const data = doc.data();
+            if (data.date) uniqueDates.add(data.date);
+        });
+
+        if (uniqueDates.size === 0) return;
+
+        const spaceRef = doc(db, COLL_SPACES, currentSpace.id);
+        const spaceSnap = await getDoc(spaceRef);
+        if (!spaceSnap.exists()) return;
+
+        const historyDates = spaceSnap.data().historyDates || {};
+        let needsUpdate = false;
+        const updates = {};
+
+        uniqueDates.forEach(date => {
+            if (!historyDates[date]) {
+                console.log("Found missing history date:", date);
+                updates[`historyDates.${date}`] = true;
+                needsUpdate = true;
             }
         });
-        todayListContainer._listenerAdded = true;
+
+        if (needsUpdate) {
+            await updateDoc(spaceRef, updates);
+            console.log("History Index Repaired successfully.");
+        } else {
+            console.log("History Index is already healthy.");
+        }
+    } catch (err) {
+        console.error("History Sync Failed:", err);
     }
+}
+// Add event delegation for manual marking
+if (!todayListContainer._listenerAdded) {
+    todayListContainer.addEventListener('click', (e) => {
+        const btnMark = e.target.closest('.btn-mark-present');
+        const btnUndo = e.target.closest('.btn-undo-attendance');
+
+        if (btnMark) {
+            const item = btnMark.closest('.list-item');
+            const uid = item.dataset.uid;
+            const name = item.dataset.name;
+            if (uid && name) {
+                markAttendance(name);
+            }
+        } else if (btnUndo) {
+            const item = btnUndo.closest('.list-item');
+            const uid = item.dataset.uid;
+            const name = item.dataset.name;
+            if (uid && name) {
+                unmarkAttendance(uid, name);
+            }
+        }
+    });
+    todayListContainer._listenerAdded = true;
 }
 
 function renderAttendanceList() {
@@ -2177,8 +2247,7 @@ async function markAttendance(name) {
     if (!docId) return;
 
     const now = Date.now();
-    const sessionKey = `${name}_${currentSession}`;
-    const lastMarked = attendanceCooldowns[sessionKey] || 0;
+    const lastMarked = attendanceCooldowns[name] || 0;
     // 1 minute cooldown to prevent duplicate triggers
     if (now - lastMarked < 60000) return;
 
@@ -2194,38 +2263,43 @@ async function markAttendance(name) {
         const timeStr = new Date().toLocaleTimeString();
         addLiveLogEntry(name, timeStr);
 
-        // 2. Mark attendance (Multi-session aware)
-        const isMultiSession = currentSpace?.config?.multiSessionEnabled;
-        const dateId = new Date().toISOString().split('T')[0];
-        const sessionRecordId = isMultiSession ? `${dateId}_${currentSession}` : dateId;
-
-        if (isMultiSession) {
-            if (userData.markedSessions && userData.markedSessions[sessionRecordId]) {
-                return;
-            }
-        } else {
-            if (userData.lastAttendance === todayDate) {
-                return;
-            }
+        // 2. ONLY mark attendance if not already marked today
+        if (userData.lastAttendance === todayDate) {
+            // Silently return for DB update, but we still log the sighting above
+            return;
         }
 
-        // Perform the update first to ensure data integrity
-        await updateDoc(userDocRef, {
-            lastAttendance: todayDate,
-            attendanceCount: increment(1),
-            [`markedSessions.${sessionRecordId}`]: true
-        });
+        // Save to History Collection
+        const dateId = getLocalYYYYMMDD();
+
+        // Push both updates - order matters: ensure history exists before or with user update
+        await Promise.all([
+            addDoc(collection(db, COLL_ATTENDANCE), {
+                spaceId: currentSpace.id,
+                userId: docId,
+                name: name,
+                regNo: userData.regNo || '',
+                course: userData.course || '',
+                date: dateId,
+                timestamp: new Date()
+            }),
+            updateDoc(doc(db, COLL_SPACES, currentSpace.id), {
+                [`historyDates.${dateId}`]: true
+            }),
+            updateDoc(userDocRef, {
+                lastAttendance: todayDate,
+                attendanceCount: increment(1)
+            })
+        ]);
 
         // ONLY AFTER SUCCESS: Mark cooldown and perform side effects
-        attendanceCooldowns[sessionKey] = now;
+        attendanceCooldowns[name] = now;
 
         if (navigator.vibrate) navigator.vibrate(100);
         showToast(`Attendance marked: ${name}`, 'success');
 
         // Trigger Digital ID Card
         showIdCard(userData);
-
-        // Live log already added above
 
         const nowSpoken = Date.now();
         const lastTimeSpoken = lastSpoken[name] || 0;
@@ -2235,23 +2309,6 @@ async function markAttendance(name) {
             speak(`${name} present`, gender);
             lastSpoken[name] = nowSpoken;
         }
-
-        // Save to History Collection
-        dateId = new Date().toISOString().split('T')[0];
-        await addDoc(collection(db, COLL_ATTENDANCE), {
-            spaceId: currentSpace.id,
-            userId: docId,
-            name: name,
-            regNo: userData.regNo || '',
-            course: userData.course || '',
-            date: dateId,
-            session: currentSession,
-            timestamp: new Date()
-        });
-
-        await updateDoc(doc(db, COLL_SPACES, currentSpace.id), {
-            [`historyDates.${dateId}`]: true
-        });
 
         const wrapper = document.querySelector('.camera-wrapper');
         if (wrapper) {
@@ -2273,22 +2330,18 @@ async function unmarkAttendance(uid, name) {
             const todayDate = new Date().toDateString();
 
             // Revert user status
-            const dateId = new Date().toISOString().split('T')[0];
-            const sessionRecordId = currentSpace?.config?.multiSessionEnabled ? `${dateId}_${currentSession}` : dateId;
-
             await updateDoc(userDocRef, {
-                lastAttendance: "removed",
-                attendanceCount: increment(-1),
-                [`markedSessions.${sessionRecordId}`]: deleteField()
+                lastAttendance: "removed", // or null, using "removed" to distinguish from never attended
+                attendanceCount: increment(-1)
             });
 
             // Remove from History Collection for today
+            const dateId = getLocalYYYYMMDD();
             const q = query(
                 collection(db, COLL_ATTENDANCE),
                 where("spaceId", "==", currentSpace.id),
                 where("userId", "==", uid),
-                where("date", "==", dateId),
-                where("session", "==", currentSession)
+                where("date", "==", dateId)
             );
 
             const querySnapshot = await getDocs(q);
@@ -2300,9 +2353,8 @@ async function unmarkAttendance(uid, name) {
 
             showToast(`Attendance removed for ${name}`);
 
-            // Clean up cooldown
-            const sessionKey = `${name}_${currentSession}`;
-            delete attendanceCooldowns[sessionKey];
+            // Clean up cooldown so they can be marked again immediately if needed
+            delete attendanceCooldowns[name];
 
         } catch (err) {
             console.error("Unmark Attendance Error:", err);
@@ -2379,7 +2431,6 @@ if (btnExportPdf) btnExportPdf.addEventListener('click', exportToPDF);
 const btnExportHistoryPdf = document.getElementById('btn-export-history-pdf');
 if (btnExportHistoryPdf) btnExportHistoryPdf.addEventListener('click', exportHistoryToPDF);
 
-// Magic Link Event Listeners
 // Magic Link Event Listeners
 const btnGenerateMagic = document.getElementById('btn-generate-magic');
 const btnProjectMagic = document.getElementById('btn-project-magic');
@@ -2531,40 +2582,6 @@ function addLiveLogEntry(name, time) {
     }
 }
 
-function updateSessionVisibility() {
-    const container = document.getElementById('session-selector-container');
-    if (container) {
-        if (currentSpace?.config?.multiSessionEnabled) {
-            container.classList.remove('hidden');
-        } else {
-            container.classList.add('hidden');
-            currentSession = 'Morning'; // Reset to default
-        }
-    }
-}
-
-// Session Logic
-const sessionSelect = document.getElementById('session-select');
-const customSessionInput = document.getElementById('custom-session-name');
-
-if (sessionSelect) {
-    sessionSelect.addEventListener('change', (e) => {
-        if (e.target.value === 'Custom') {
-            customSessionInput.classList.remove('hidden');
-            currentSession = customSessionInput.value || 'Custom';
-        } else {
-            customSessionInput.classList.add('hidden');
-            currentSession = e.target.value;
-        }
-    });
-}
-
-if (customSessionInput) {
-    customSessionInput.addEventListener('input', (e) => {
-        currentSession = e.target.value || 'Custom';
-    });
-}
-
 async function exportToExcel() {
     if (allUsersData.length === 0) {
         alert("No data available for this workspace.");
@@ -2581,41 +2598,29 @@ async function exportToExcel() {
         );
         const attendSnap = await getDocs(attendQuery);
 
-        // 2. Map data: userId -> date_session -> time
+        // 2. Map data: userId -> date -> time
         const attendanceMap = {};
-        const uniqueColumns = new Set(); // Stores "YYYY-MM-DD (Session)"
-        const colTotals = {};
+        const uniqueDates = new Set();
+        const dateTotals = {};
 
         attendSnap.forEach(snap => {
             const data = snap.data();
             if (!attendanceMap[data.userId]) attendanceMap[data.userId] = {};
 
-            const timestamp = data.timestamp;
-            let timeStr = 'P';
-            if (timestamp) {
-                try {
-                    const dateObj = timestamp.toDate ? timestamp.toDate() : (timestamp instanceof Date ? timestamp : new Date(timestamp));
-                    timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                } catch (e) {
-                    timeStr = 'P';
-                }
-            }
+            const timeStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'P';
 
-            const sessionSuffix = data.session ? ` (${data.session})` : '';
-            const colName = `${data.date}${sessionSuffix}`;
-
-            if (!attendanceMap[data.userId][colName]) {
-                attendanceMap[data.userId][colName] = `P (${timeStr})`;
-                colTotals[colName] = (colTotals[colName] || 0) + 1;
+            if (!attendanceMap[data.userId][data.date]) {
+                attendanceMap[data.userId][data.date] = `P (${timeStr})`;
+                dateTotals[data.date] = (dateTotals[data.date] || 0) + 1;
             }
-            uniqueColumns.add(colName);
+            uniqueDates.add(data.date);
         });
 
-        const sortedCols = Array.from(uniqueColumns).sort();
-        const totalColsCount = sortedCols.length;
+        const sortedDates = Array.from(uniqueDates).sort();
+        const totalDatesCount = sortedDates.length;
 
         // 3. Build CSV Header
-        const headers = ["Name", "Reg No", "Course", "Phone", "Total Records", ...sortedCols];
+        const headers = ["Name", "Reg No", "Course", "Phone", "Days Present", "Attendance %", ...sortedDates];
         let csvContent = headers.map(h => `"${h}"`).join(",") + "\n";
 
         // 4. Build CSV Rows (Students - Sorted Alphabetically)
@@ -2626,40 +2631,38 @@ async function exportToExcel() {
         });
 
         sortedUsers.forEach(user => {
-            const recordCount = Object.keys(attendanceMap[user.id] || {}).length;
+            const presentDays = Object.keys(attendanceMap[user.id] || {}).length;
+            const percentage = totalDatesCount > 0 ? ((presentDays / totalDatesCount) * 100).toFixed(1) + '%' : '0%';
 
             const row = [
                 user.name || 'Unknown',
                 user.regNo || 'N/A',
                 user.course || 'N/A',
                 user.phone || 'N/A',
-                recordCount
+                presentDays,
+                percentage
             ];
 
-            sortedCols.forEach(col => {
-                row.push(attendanceMap[user.id]?.[col] || '-');
+            sortedDates.forEach(date => {
+                row.push(attendanceMap[user.id]?.[date] || '-');
             });
 
-            const escapedRow = row.map(cell => {
-                const s = String(cell).replace(/"/g, '""');
-                return `"${s}"`;
-            });
-            csvContent += escapedRow.join(",") + "\n";
+            csvContent += row.map(cell => `"${cell}"`).join(",") + "\n";
         });
 
         // Summary
-        const summaryRow = ["TOTALS", "", "", "", ""];
-        sortedCols.forEach(col => {
-            summaryRow.push(colTotals[col] || 0);
+        const summaryRow = ["DAILY TOTALS", "", "", "", "", ""];
+        sortedDates.forEach(date => {
+            summaryRow.push(dateTotals[date] || 0);
         });
-        csvContent += summaryRow.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",") + "\n";
+        csvContent += summaryRow.map(cell => `"${cell}"`).join(",") + "\n";
 
         // 6. Trigger Download as .csv (Excel compatible)
         const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `Master_Attendance_${currentSpace.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `Master_Attendance_${currentSpace.name.replace(/\s+/g, '_')}_${getLocalYYYYMMDD()}.csv`;
         link.click();
 
         showToast("Master Report Exported!");
