@@ -261,7 +261,6 @@
                     <h4>Navigation</h4>
                     <button class="nav-item active" data-mode="attend">🕒 Attendance Monitor</button>
                     <button class="nav-item" data-mode="reg">👤 Student Registration</button>
-                    <button class="nav-item" data-mode="tactical">🗺️ Tactical Command</button>
                     <button class="nav-item" data-mode="analytics">👥 Analytics & Logs</button>
                     <button class="nav-item" data-mode="config">⚙️ System Config</button>
                 </div>
@@ -343,8 +342,6 @@
                         Attend</button>
                     <button id="btn-mode-reg" class="btn-secondary" title="Student Registration"><span>👤</span>
                         Reg</button>
-                    <button id="btn-mode-tactical" class="btn-secondary" title="Tactical Command Map"><span>🗺️</span>
-                        Tactical</button>
                     <button id="btn-mode-analytics" class="btn-secondary" title="Analytics & Logs"><span>👥</span>
                         Logs</button>
                     <button id="btn-mode-config" class="btn-secondary" title="Configuration"><span>⚙️</span>
@@ -479,29 +476,6 @@
                         <input type="text" id="people-search" placeholder="Search people...">
                     </div>
                     <div id="people-list-container" class="scrollable-list" style="max-height: 350px;"></div>
-                </div>
-
-                <div id="tactical-panel" class="hidden" style="flex: 1; display: flex; flex-direction: column;">
-                    <div class="list-header">
-                        <span>🛰️ Tactical Ground Command</span>
-                        <div id="active-pings-status"
-                            style="font-size: 0.6rem; color: var(--accent); font-family: 'JetBrains Mono', monospace;">
-                            LIVE UPDATES: ACTIVE</div>
-                    </div>
-                    <div id="tactical-map-container"
-                        style="width: 100%; flex: 1; min-height: 300px; border-radius: 24px; border: 3.5px solid rgba(0, 242, 255, 0.4); overflow: hidden; position: relative; background: #000;">
-                        <div id="tactical-map" style="width: 100%; height: 100%;"></div>
-                        <div class="map-scan-line"></div>
-                        <div
-                            style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px); background-size: 100% 2px; z-index: 1000; opacity: 0.3;">
-                        </div>
-                        <div id="map-telemetry"
-                            style="position: absolute; bottom: 15px; left: 15px; z-index: 1001; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); text-shadow: 0 0 5px #000;">
-                            REGION: GROUND_CONTROL<br>
-                            SIGNAL: ENCRYPTED<br>
-                            UPLINK: ACTIVE_SAT
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
