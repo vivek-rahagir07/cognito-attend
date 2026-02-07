@@ -346,6 +346,10 @@ async function handleJoin() {
             if (doc.data().password === password) {
                 found = true;
                 enterSpace(doc.id, doc.data());
+                // The following lines were part of the requested change, but 'snapshot' is undefined here.
+                // allUsersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // renderAttendanceList();
+                // updateSessionVisibility();
             }
         });
 
@@ -1147,7 +1151,7 @@ async function saveSpaceConfig() {
 
     try {
         await updateDoc(doc(db, COLL_SPACES, currentSpace.id), {
-            config: { ...newConfig, examMode: examMode },
+            config: { ...newConfig, examMode: examMode, multiSessionEnabled: newConfig.multiSessionEnabled || false },
             geofencing: {
                 enabled: geofenceEnabled,
                 radius: geofenceRadius,
@@ -1158,6 +1162,7 @@ async function saveSpaceConfig() {
 
         // Update local state
         currentSpace.config = { ...newConfig, examMode: examMode };
+        updateSessionVisibility();
         currentSpace.config.qrRefreshInterval = configQrRefresh.value;
         currentSpace.geofencing = { enabled: geofenceEnabled, radius: geofenceRadius, center: lat && lng ? { lat, lng } : null };
 
@@ -2190,12 +2195,18 @@ async function markAttendance(name) {
         addLiveLogEntry(name, timeStr);
 
         // 2. Mark attendance (Multi-session aware)
+        const isMultiSession = currentSpace?.config?.multiSessionEnabled;
         const dateId = new Date().toISOString().split('T')[0];
-        const sessionRecordId = `${dateId}_${currentSession}`;
+        const sessionRecordId = isMultiSession ? `${dateId}_${currentSession}` : dateId;
 
-        if (userData.markedSessions && userData.markedSessions[sessionRecordId]) {
-            // Already marked for this specific session today
-            return;
+        if (isMultiSession) {
+            if (userData.markedSessions && userData.markedSessions[sessionRecordId]) {
+                return;
+            }
+        } else {
+            if (userData.lastAttendance === todayDate) {
+                return;
+            }
         }
 
         // Perform the update first to ensure data integrity
@@ -2512,6 +2523,18 @@ function addLiveLogEntry(name, time) {
     // Limit log entries to 50 for performance
     if (liveLogsContainer.children.length > 50) {
         liveLogsContainer.removeChild(liveLogsContainer.lastChild);
+    }
+}
+
+function updateSessionVisibility() {
+    const container = document.getElementById('session-selector-container');
+    if (container) {
+        if (currentSpace?.config?.multiSessionEnabled) {
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+            currentSession = 'Morning'; // Reset to default
+        }
     }
 }
 

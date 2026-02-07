@@ -365,6 +365,8 @@
                             Announcements</label>
                         <label><input type="checkbox" class="field-toggle" data-field="biometricEnabled" checked>
                             Biometric Fingerprint Security</label>
+                        <label><input type="checkbox" class="field-toggle" data-field="multiSessionEnabled">
+                            Enable Multi-Session (Morning, Afternoon, etc.)</label>
                     </div>
 
                     <h3 style="margin-top: 15px;">Geofencing Settings</h3>
@@ -453,7 +455,7 @@
                             <div style="display: flex; gap: 10px; align-items: center;">
                                 <span id="tab-present" class="attendance-tab active">Present</span>
                                 <span id="tab-absent" class="attendance-tab">Absent</span>
-                                <div class="session-selector-wrapper">
+                                <div id="session-selector-container" class="session-selector-wrapper hidden">
                                     <select id="session-select" class="session-select">
                                         <option value="Morning">🌅 Morning</option>
                                         <option value="Afternoon">☀️ Afternoon</option>
