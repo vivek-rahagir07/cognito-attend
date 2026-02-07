@@ -450,9 +450,19 @@
                 <div id="attend-info">
                     <div style="margin-bottom: 15px;">
                         <div class="list-header">
-                            <div style="display: flex; gap: 10px;">
+                            <div style="display: flex; gap: 10px; align-items: center;">
                                 <span id="tab-present" class="attendance-tab active">Present</span>
                                 <span id="tab-absent" class="attendance-tab">Absent</span>
+                                <div class="session-selector-wrapper">
+                                    <select id="session-select" class="session-select">
+                                        <option value="Morning">🌅 Morning</option>
+                                        <option value="Afternoon">☀️ Afternoon</option>
+                                        <option value="Evening">🌙 Evening</option>
+                                        <option value="Custom">✏️ Custom...</option>
+                                    </select>
+                                    <input type="text" id="custom-session-name" class="custom-session-input hidden"
+                                        placeholder="Session name...">
+                                </div>
                             </div>
                             <div style="display: flex; gap: 6px;">
                                 <button id="btn-export" class="btn-export">📊 CSV</button>

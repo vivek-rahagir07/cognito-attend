@@ -599,6 +599,43 @@ input:focus {
     -webkit-overflow-scrolling: touch;
 }
 
+/* Session Selector */
+.session-selector-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.session-select {
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    padding: 4px 0;
+}
+
+.session-select option {
+    background: #111;
+    color: #fff;
+}
+
+.custom-session-input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    color: #fff;
+    width: 100px;
+}
+
 .attendance-tab {
     cursor: pointer;
     padding: 4px 10px;
@@ -3006,6 +3043,7 @@ button:active,
         margin-top: 0;
     }
 }
+
 /* Camera Toggle Styles */
 .viewfinder-ui.bottom-row {
     position: absolute;
@@ -3034,7 +3072,7 @@ button:active,
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
     font-size: 0.75rem;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     z-index: 100;
 }
 

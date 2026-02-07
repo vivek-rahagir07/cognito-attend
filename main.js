@@ -119,6 +119,7 @@ let currentHistoryDate = '';
 
 let currentMode = 'attendance';
 let currentSpace = null;
+let currentSession = 'Morning';
 let labeledDescriptors = [];
 let faceMatcher = null;
 let isModelsLoaded = false;
@@ -2171,7 +2172,8 @@ async function markAttendance(name) {
     if (!docId) return;
 
     const now = Date.now();
-    const lastMarked = attendanceCooldowns[name] || 0;
+    const sessionKey = `${name}_${currentSession}`;
+    const lastMarked = attendanceCooldowns[sessionKey] || 0;
     // 1 minute cooldown to prevent duplicate triggers
     if (now - lastMarked < 60000) return;
 
@@ -2187,20 +2189,24 @@ async function markAttendance(name) {
         const timeStr = new Date().toLocaleTimeString();
         addLiveLogEntry(name, timeStr);
 
-        // 2. ONLY mark attendance if not already marked today
-        if (userData.lastAttendance === todayDate) {
-            // Silently return for DB update, but we still log the sighting above
+        // 2. Mark attendance (Multi-session aware)
+        const dateId = new Date().toISOString().split('T')[0];
+        const sessionRecordId = `${dateId}_${currentSession}`;
+
+        if (userData.markedSessions && userData.markedSessions[sessionRecordId]) {
+            // Already marked for this specific session today
             return;
         }
 
         // Perform the update first to ensure data integrity
         await updateDoc(userDocRef, {
             lastAttendance: todayDate,
-            attendanceCount: increment(1)
+            attendanceCount: increment(1),
+            [`markedSessions.${sessionRecordId}`]: true
         });
 
         // ONLY AFTER SUCCESS: Mark cooldown and perform side effects
-        attendanceCooldowns[name] = now;
+        attendanceCooldowns[sessionKey] = now;
 
         if (navigator.vibrate) navigator.vibrate(100);
         showToast(`Attendance marked: ${name}`, 'success');
@@ -2220,7 +2226,7 @@ async function markAttendance(name) {
         }
 
         // Save to History Collection
-        const dateId = new Date().toISOString().split('T')[0];
+        dateId = new Date().toISOString().split('T')[0];
         await addDoc(collection(db, COLL_ATTENDANCE), {
             spaceId: currentSpace.id,
             userId: docId,
@@ -2228,6 +2234,7 @@ async function markAttendance(name) {
             regNo: userData.regNo || '',
             course: userData.course || '',
             date: dateId,
+            session: currentSession,
             timestamp: new Date()
         });
 
@@ -2508,6 +2515,28 @@ function addLiveLogEntry(name, time) {
     }
 }
 
+// Session Logic
+const sessionSelect = document.getElementById('session-select');
+const customSessionInput = document.getElementById('custom-session-name');
+
+if (sessionSelect) {
+    sessionSelect.addEventListener('change', (e) => {
+        if (e.target.value === 'Custom') {
+            customSessionInput.classList.remove('hidden');
+            currentSession = customSessionInput.value || 'Custom';
+        } else {
+            customSessionInput.classList.add('hidden');
+            currentSession = e.target.value;
+        }
+    });
+}
+
+if (customSessionInput) {
+    customSessionInput.addEventListener('input', (e) => {
+        currentSession = e.target.value || 'Custom';
+    });
+}
+
 async function exportToExcel() {
     if (allUsersData.length === 0) {
         alert("No data available for this workspace.");
@@ -2524,10 +2553,10 @@ async function exportToExcel() {
         );
         const attendSnap = await getDocs(attendQuery);
 
-        // 2. Map data: userId -> date -> time
+        // 2. Map data: userId -> date_session -> time
         const attendanceMap = {};
-        const uniqueDates = new Set();
-        const dateTotals = {};
+        const uniqueColumns = new Set(); // Stores "YYYY-MM-DD (Session)"
+        const colTotals = {};
 
         attendSnap.forEach(snap => {
             const data = snap.data();
@@ -2535,18 +2564,21 @@ async function exportToExcel() {
 
             const timeStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'P';
 
-            if (!attendanceMap[data.userId][data.date]) {
-                attendanceMap[data.userId][data.date] = `P (${timeStr})`;
-                dateTotals[data.date] = (dateTotals[data.date] || 0) + 1;
+            const sessionSuffix = data.session ? ` (${data.session})` : '';
+            const colName = `${data.date}${sessionSuffix}`;
+
+            if (!attendanceMap[data.userId][colName]) {
+                attendanceMap[data.userId][colName] = `P (${timeStr})`;
+                colTotals[colName] = (colTotals[colName] || 0) + 1;
             }
-            uniqueDates.add(data.date);
+            uniqueColumns.add(colName);
         });
 
-        const sortedDates = Array.from(uniqueDates).sort();
-        const totalDatesCount = sortedDates.length;
+        const sortedCols = Array.from(uniqueColumns).sort();
+        const totalColsCount = sortedCols.length;
 
         // 3. Build CSV Header
-        const headers = ["Name", "Reg No", "Course", "Phone", "Days Present", "Attendance %", ...sortedDates];
+        const headers = ["Name", "Reg No", "Course", "Phone", "Total Records", ...sortedCols];
         let csvContent = headers.map(h => `"${h}"`).join(",") + "\n";
 
         // 4. Build CSV Rows (Students - Sorted Alphabetically)
@@ -2557,29 +2589,27 @@ async function exportToExcel() {
         });
 
         sortedUsers.forEach(user => {
-            const presentDays = Object.keys(attendanceMap[user.id] || {}).length;
-            const percentage = totalDatesCount > 0 ? ((presentDays / totalDatesCount) * 100).toFixed(1) + '%' : '0%';
+            const recordCount = Object.keys(attendanceMap[user.id] || {}).length;
 
             const row = [
                 user.name || 'Unknown',
                 user.regNo || 'N/A',
                 user.course || 'N/A',
                 user.phone || 'N/A',
-                presentDays,
-                percentage
+                recordCount
             ];
 
-            sortedDates.forEach(date => {
-                row.push(attendanceMap[user.id]?.[date] || '-');
+            sortedCols.forEach(col => {
+                row.push(attendanceMap[user.id]?.[col] || '-');
             });
 
             csvContent += row.map(cell => `"${cell}"`).join(",") + "\n";
         });
 
         // Summary
-        const summaryRow = ["DAILY TOTALS", "", "", "", "", ""];
-        sortedDates.forEach(date => {
-            summaryRow.push(dateTotals[date] || 0);
+        const summaryRow = ["TOTALS", "", "", "", ""];
+        sortedCols.forEach(col => {
+            summaryRow.push(colTotals[col] || 0);
         });
         csvContent += summaryRow.map(cell => `"${cell}"`).join(",") + "\n";
 
