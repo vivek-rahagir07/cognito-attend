@@ -1,15 +1,15 @@
 SYSTEM: Contact Portal
 STATUS: Ready for connection
-SUPPORT: support@cognitoattend.com
-📞 MOBILE: 9996445592
+SUPPORT: vivek.hr362007@gmail.com
+📞 MOBILE: +91 9996445592
 
 RESOURCES:
 > 🌐 Website: https://cognitoattend.vivek-rahagir.com/
 > 🐙 GitHub: https://github.com/vivek-rahagir07
 > 💼 LinkedIn: https://www.linkedin.com/feed/
-> 💬 Discord: discord.gg/cognito-community
+
 
 DEVELOPMENT TEAM:
-> Lead Architect: Vivek R.
-> UI/UX Design: Cyber-Studio
-> AI Core: Neural-Attend Engine
+> Lead Architect: Vivek Yadav(rahagir)
+> UI/UX Design: Shreya chaudhary
+
