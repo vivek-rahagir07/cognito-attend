@@ -998,7 +998,6 @@ async function processTerminalCommand(e, contentId) {
 - faqs          : Frequently Asked Questions
 - cat [file]    : Read file contents (e.g., cat about.txt)
 - ls            : List available files
-- system        : Show holographic system stats
 - whoami        : Current session identity`;
         } else if (command === 'clear') {
             contentDiv.innerHTML = '';
