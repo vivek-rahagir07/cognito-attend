@@ -1203,17 +1203,21 @@ if (document.getElementById('btn-contact')) {
 }
 
 // Window Controls Logic
-function setupTerminalControls(modalId, redId, yellowId, greenId) {
+function setupTerminalControls(modalId, redId, yellowId, greenId, closeBtnId) {
     const modal = document.getElementById(modalId);
+    if (!modal) return;
     const container = modal.querySelector('.terminal-container');
 
-    document.getElementById(redId).onclick = () => {
+    const closeModal = () => {
         modal.classList.add('hidden');
         isAIPaused = false;
         container.classList.remove('minimized', 'maximized');
     };
 
-    document.getElementById(yellowId).onclick = () => {
+    if (document.getElementById(redId)) document.getElementById(redId).onclick = closeModal;
+    if (document.getElementById(closeBtnId)) document.getElementById(closeBtnId).onclick = closeModal;
+
+    if (document.getElementById(yellowId)) {
         container.classList.toggle('minimized');
     };
 
@@ -1224,8 +1228,8 @@ function setupTerminalControls(modalId, redId, yellowId, greenId) {
 
 // Initialize Terminal Controls
 document.addEventListener('DOMContentLoaded', () => {
-    setupTerminalControls('about-modal', 'btn-close-about-dot', 'btn-min-about', 'btn-max-about');
-    setupTerminalControls('contact-modal', 'btn-close-contact-dot', 'btn-min-contact', 'btn-max-contact');
+    setupTerminalControls('about-modal', 'btn-close-about-dot', 'btn-min-about', 'btn-max-about', 'btn-close-about');
+    setupTerminalControls('contact-modal', 'btn-close-contact-dot', 'btn-min-contact', 'btn-max-contact', 'btn-close-contact');
 
     // Tier 2: Matrix Rain
     initMatrixRain('about-terminal-bg');
