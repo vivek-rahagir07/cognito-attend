@@ -258,29 +258,8 @@ class TerminalAudio {
 
     playKeyPress() {
         if (!this.enabled || !this.ctx) return;
-
-        // Mechanical click using noise
-        const bufferSize = this.ctx.sampleRate * 0.02; // 20ms
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
-
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = 1200; // Keycap tap frequency
-        filter.Q.value = 1.5;
-
-        const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(0.015, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.02);
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.ctx.destination);
-        noise.start();
+        const f = 500 + Math.random() * 300; // Soft "tui"
+        this.playTone(f, 0.02, 'sine', 0.01); // Extremely short, extremely soft
     }
 
 
@@ -759,8 +738,8 @@ if (btnCloseContact) {
 
 
 async function typeText(element, text, speed = 20) {
-    // Regex for URLs and custom highlighting tags: [[accent]], {{pink}}, <<gold>>
-    const combinedRegex = /(https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+|\[\[.*?\]\]|\{\{.*?\}\}|<<.*?>>)/g;
+    // Regex for URLs and tags: [[accent]], {{pink}}, <<gold>>, ((blue)), **green**
+    const combinedRegex = /(https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+|\[\[.*?\]\]|\{\{.*?\}\}|<<.*?>>|\(\(.*?\)\)|\*\*.*?\*\*)/g;
     const parts = text.split(combinedRegex);
     element.innerHTML = '';
 
@@ -786,40 +765,19 @@ async function typeText(element, text, speed = 20) {
             }
         } else if (part.startsWith('[[') && part.endsWith(']]')) {
             const cleanText = part.slice(2, -2);
-            const span = document.createElement('span');
-            span.className = 'hl-accent';
-            element.appendChild(span);
-            for (let char of cleanText) {
-                termAudio.playKeyPress();
-                span.textContent += char;
-                const terminalBody = element.closest('.terminal-body');
-                if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
-                await new Promise(r => setTimeout(r, speed));
-            }
+            await typeSpan(element, cleanText, 'hl-accent', speed);
         } else if (part.startsWith('{{') && part.endsWith('}}')) {
             const cleanText = part.slice(2, -2);
-            const span = document.createElement('span');
-            span.className = 'hl-pink';
-            element.appendChild(span);
-            for (let char of cleanText) {
-                termAudio.playKeyPress();
-                span.textContent += char;
-                const terminalBody = element.closest('.terminal-body');
-                if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
-                await new Promise(r => setTimeout(r, speed));
-            }
+            await typeSpan(element, cleanText, 'hl-pink', speed);
         } else if (part.startsWith('<<') && part.endsWith('>>')) {
             const cleanText = part.slice(2, -2);
-            const span = document.createElement('span');
-            span.className = 'hl-gold';
-            element.appendChild(span);
-            for (let char of cleanText) {
-                termAudio.playKeyPress();
-                span.textContent += char;
-                const terminalBody = element.closest('.terminal-body');
-                if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
-                await new Promise(r => setTimeout(r, speed));
-            }
+            await typeSpan(element, cleanText, 'hl-gold', speed);
+        } else if (part.startsWith('((') && part.endsWith('))')) {
+            const cleanText = part.slice(2, -2);
+            await typeSpan(element, cleanText, 'hl-blue', speed);
+        } else if (part.startsWith('**') && part.endsWith('**')) {
+            const cleanText = part.slice(2, -2);
+            await typeSpan(element, cleanText, 'hl-green', speed);
         } else {
             for (let char of part) {
                 if (char !== ' ' && char !== '\n') termAudio.playKeyPress();
@@ -829,6 +787,19 @@ async function typeText(element, text, speed = 20) {
                 await new Promise(r => setTimeout(r, speed));
             }
         }
+    }
+}
+
+async function typeSpan(element, text, className, speed) {
+    const span = document.createElement('span');
+    span.className = className;
+    element.appendChild(span);
+    for (let char of text) {
+        termAudio.playKeyPress();
+        span.textContent += char;
+        const terminalBody = element.closest('.terminal-body');
+        if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+        await new Promise(r => setTimeout(r, speed));
     }
 }
 
@@ -1164,8 +1135,11 @@ function setupTerminalControls(modalId, redId, yellowId, greenId) {
     };
 }
 
-setupTerminalControls('about-modal', 'btn-close-about-dot', 'btn-min-about', 'btn-max-about');
-setupTerminalControls('contact-modal', 'btn-close-contact-dot', 'btn-min-contact', 'btn-max-contact');
+// Initialize Terminal Controls
+document.addEventListener('DOMContentLoaded', () => {
+    setupTerminalControls('about-modal', 'btn-close-about-dot', 'btn-min-about', 'btn-max-about');
+    setupTerminalControls('contact-modal', 'btn-close-contact-dot', 'btn-min-contact', 'btn-max-contact');
+});
 
 // Close modals when clicking outside
 window.addEventListener('click', (e) => {

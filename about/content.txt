@@ -1,16 +1,16 @@
   
 
-[ [[COGNITO ATTEND SYSTEM]] -- {{v1.0.0}} ]
+[ ((COGNITO ATTEND SYSTEM)) -- {{v1.0.0}} ]
 -----------------------------------
 SYSTEM: [[CognitoAttend]] {{v.1.0.0}}
-STATUS: <<Operational>>
+STATUS: **Operational**
 DESCRIPTION: Next-Gen {{Biometric Attendance}} & Monitoring System powered by advanced [[AI]] and [[Face-API]] technology.
 
 ENGINEERING STACK:
-- Core: [[JavaScript]] (ES6+)
-- Biometrics: [[Face-API.js]] / [[TensorFlow.js]]
-- Backend: [[Firebase Firestore]] / [[Auth]]
-- Visuals: [[Three.js]] / [[Spline]] / [[CSS3]]
+- Core: ((JavaScript)) (ES6+)
+- AI: ((Face-API.js)) / ((TensorFlow.js))
+- Backend: ((Firebase Firestore)) / ((Auth))
+- Visuals: ((Three.js)) / ((Spline)) / ((CSS3))
 
 CORE FEATURES:
 - [[Contactless Attendance]] via AI
