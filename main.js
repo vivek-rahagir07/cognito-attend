@@ -148,6 +148,86 @@ const qrTimerDisplay = document.getElementById('qr-timer');
 const qrStatus = document.getElementById('qr-status');
 const qrScanCountDisplay = document.getElementById('qr-scan-count');
 const configQrRefresh = document.getElementById('config-qr-refresh');
+// Status Bar Updates
+function updateStatusBars() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+    const loadStr = (Math.random() * 5 + 1).toFixed(1) + '%';
+    const aiStr = isModelsLoaded ? 'ONLINE' : 'BOOTING...';
+
+    ['about', 'contact'].forEach(prefix => {
+        const timeEl = document.getElementById(`${prefix}-status-time`);
+        const loadEl = document.getElementById(`${prefix}-status-load`);
+        const aiEl = document.getElementById(`${prefix}-status-ai`);
+        if (timeEl) timeEl.innerText = timeStr;
+        if (loadEl) loadEl.innerText = loadStr;
+        if (aiEl) {
+            aiEl.innerText = aiStr;
+            aiEl.className = isModelsLoaded ? 'status-value' : 'status-value status-online';
+        }
+    });
+}
+setInterval(updateStatusBars, 1000);
+
+// Holographic Glitch Trigger
+function triggerRandomGlitch() {
+    const lines = document.querySelectorAll('.terminal-content div, .terminal-line');
+    if (lines.length === 0) return;
+
+    const randomLine = lines[Math.floor(Math.random() * lines.length)];
+    const originalText = randomLine.innerText;
+    if (!originalText || originalText.length < 5) return;
+
+    randomLine.classList.add('glitch-effect');
+    randomLine.setAttribute('data-text', originalText);
+
+    setTimeout(() => {
+        randomLine.classList.remove('glitch-effect');
+        randomLine.removeAttribute('data-text');
+    }, 1500);
+}
+setInterval(triggerRandomGlitch, 5000);
+
+// Matrix Rain Effect
+function initMatrixRain(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const resize = () => {
+        canvas.width = canvas.parentElement.offsetWidth;
+        canvas.height = canvas.parentElement.offsetHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const charStr = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ$@#&%*';
+    const characters = charStr.split('');
+    const fontSize = 10;
+    const columns = canvas.width / fontSize;
+    const drops = [];
+
+    for (let x = 0; x < columns; x++) drops[x] = 1;
+
+    function draw() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#00ff41'; // Matrix Green
+        ctx.font = fontSize + 'px monospace';
+
+        for (let i = 0; i < drops.length; i++) {
+            const text = characters[Math.floor(Math.random() * characters.length)];
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+            drops[i]++;
+        }
+    }
+    setInterval(draw, 50);
+}
 const aboutModal = document.getElementById('about-modal');
 const contactModal = document.getElementById('contact-modal');
 const qrExpiredOverlay = document.getElementById('qr-expired-overlay');
@@ -940,14 +1020,23 @@ IP: 127.0.0.1 (Masked)
 STATUS: Viewing Project Documentation`;
         } else if (command === 'system' || command === 'neofetch') {
             useHtml = true;
+            const cpu = Math.floor(Math.random() * 20 + 10);
+            const mem = Math.floor(Math.random() * 15 + 45);
             responseText = `
                 <div class="terminal-system-stats">
-                    <span class="stat-label">OS</span><span class="stat-value">Cognito_HUD v1.9</span>
+                    <span class="stat-label">OS</span><span class="stat-value">Cognito_HUD v2.0-PRO</span>
                     <span class="stat-label">KERNEL</span><span class="stat-value">Browser_Native_AI</span>
                     <span class="stat-label">UPTIME</span><span class="stat-value">${Math.floor(performance.now() / 1000)}s</span>
-                    <span class="stat-label">WORKSPACE</span><span class="stat-value">${currentSpace ? currentSpace.name : 'None (Splash)'}</span>
-                    <span class="stat-label">BIOMETRICS</span><span class="stat-value">${isModelsLoaded ? 'ONLINE' : 'OFFLINE'}</span>
-                    <span class="stat-label">CPU_USAGE</span><span class="stat-value">${Math.floor(Math.random() * 30 + 10)}% (Browser)</span>
+                    
+                    <span class="stat-label">CPU_LOAD</span>
+                    <div class="progress-container"><div class="progress-fill" style="width: ${cpu}%"></div></div>
+                    <span class="stat-value">${cpu}%</span>
+
+                    <span class="stat-label">MEM_USAGE</span>
+                    <div class="progress-container"><div class="progress-fill" style="width: ${mem}%"></div></div>
+                    <span class="stat-value">${mem}%</span>
+
+                    <span class="stat-label">AI_MODULE</span><span class="stat-value">${isModelsLoaded ? 'STATE: OPTIMAL' : 'STATE: LOAD_ERROR'}</span>
                 </div>`;
         } else if (command === 'mission' || command.includes('mission')) {
             try {
@@ -1137,6 +1226,10 @@ function setupTerminalControls(modalId, redId, yellowId, greenId) {
 document.addEventListener('DOMContentLoaded', () => {
     setupTerminalControls('about-modal', 'btn-close-about-dot', 'btn-min-about', 'btn-max-about');
     setupTerminalControls('contact-modal', 'btn-close-contact-dot', 'btn-min-contact', 'btn-max-contact');
+
+    // Tier 2: Matrix Rain
+    initMatrixRain('about-terminal-bg');
+    initMatrixRain('contact-terminal-bg');
 });
 
 // Close modals when clicking outside

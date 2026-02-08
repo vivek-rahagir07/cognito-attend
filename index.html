@@ -739,6 +739,7 @@
                 <button id="btn-close-about" class="terminal-close" aria-label="Close Modal">&times;</button>
             </div>
             <div class="terminal-body" id="about-modal-body">
+                <canvas id="about-terminal-bg" class="terminal-bg-canvas"></canvas>
                 <div class="terminal-line"><span class="prompt">guest@cognito:~$</span> <span class="command">cat
                         about/content.txt</span></div>
                 <div id="about-terminal-content" class="terminal-content">
@@ -750,6 +751,20 @@
                     <span id="about-input" class="terminal-input" contenteditable="true" spellcheck="false"
                         data-placeholder="Type 'help' for commands..."></span>
                     <span class="cursor">_</span>
+                </div>
+            </div>
+            <div class="terminal-footer">
+                <div class="status-item">
+                    <span class="status-label">TIME:</span>
+                    <span id="about-status-time" class="status-value">--:--:--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">LOAD:</span>
+                    <span id="about-status-load" class="status-value">0%</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">AI:</span>
+                    <span id="about-status-ai" class="status-value">OFFLINE</span>
                 </div>
             </div>
         </div>
@@ -768,6 +783,7 @@
                 <button id="btn-close-contact" class="terminal-close" aria-label="Close Modal">&times;</button>
             </div>
             <div class="terminal-body" id="contact-modal-body">
+                <canvas id="contact-terminal-bg" class="terminal-bg-canvas"></canvas>
                 <div class="terminal-line"><span class="prompt">guest@cognito:~$</span> <span class="command">cat
                         about/contact.txt</span></div>
                 <div id="contact-terminal-content" class="terminal-content">
@@ -779,6 +795,20 @@
                     <span id="contact-input" class="terminal-input" contenteditable="true" spellcheck="false"
                         data-placeholder="Type 'help' for commands..."></span>
                     <span class="cursor">_</span>
+                </div>
+            </div>
+            <div class="terminal-footer">
+                <div class="status-item">
+                    <span class="status-label">TIME:</span>
+                    <span id="contact-status-time" class="status-value">--:--:--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">LOAD:</span>
+                    <span id="contact-status-load" class="status-value">0%</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">AI:</span>
+                    <span id="contact-status-ai" class="status-value">OFFLINE</span>
                 </div>
             </div>
         </div>

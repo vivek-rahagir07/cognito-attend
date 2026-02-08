@@ -3244,6 +3244,155 @@ button:active,
 }
 
 
+/* Tier 2 Enhancements */
+.terminal-footer {
+    height: 25px;
+    background: rgba(0, 0, 0, 0.6);
+    border-top: 1px solid rgba(0, 212, 255, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    z-index: 10;
+}
+
+.status-item {
+    display: flex;
+    gap: 8px;
+}
+
+.status-label {
+    opacity: 0.6;
+}
+
+.status-value {
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.terminal-bg-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.08;
+    z-index: 0;
+}
+
+/* Glitch Effect */
+.glitch-effect {
+    position: relative;
+    animation: glitch-color 4s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-color {
+    0% {
+        color: var(--accent);
+    }
+
+    33% {
+        color: #00d4ff;
+    }
+
+    66% {
+        color: #ff0055;
+    }
+
+    100% {
+        color: var(--accent);
+    }
+}
+
+.glitch-effect::before,
+.glitch-effect::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.8;
+}
+
+.glitch-effect::before {
+    animation: glitch-anim 2.5s infinite linear alternate-reverse;
+    left: 2px;
+    text-shadow: -2px 0 #ff00c1;
+    clip: rect(44px, 450px, 56px, 0);
+}
+
+.glitch-effect::after {
+    animation: glitch-anim2 2s infinite linear alternate-reverse;
+    left: -2px;
+    text-shadow: -2px 0 #00fff9, 2px 2px #ff00c1;
+    clip: rect(44px, 450px, 56px, 0);
+}
+
+@keyframes glitch-anim {
+    0% {
+        clip: rect(31px, 9999px, 94px, 0);
+        transform: skew(0.85deg);
+    }
+
+    5% {
+        clip: rect(70px, 9999px, 71px, 0);
+        transform: skew(0.85deg);
+    }
+
+    10% {
+        clip: rect(3px, 9999px, 100px, 0);
+        transform: skew(0.1deg);
+    }
+
+    15% {
+        clip: rect(100px, 9999px, 12px, 0);
+        transform: skew(0.85deg);
+    }
+
+    /* ... shortened for performance ... */
+    100% {
+        clip: rect(13px, 9999px, 20px, 0);
+        transform: skew(0.25deg);
+    }
+}
+
+@keyframes glitch-anim2 {
+    0% {
+        clip: rect(65px, 9999px, 100px, 0);
+        transform: skew(0.15deg);
+    }
+
+    100% {
+        clip: rect(3px, 9999px, 100px, 0);
+        transform: skew(0.11deg);
+    }
+}
+
+/* Progress Bars */
+.progress-container {
+    width: 200px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px var(--accent);
+}
+
 .terminal-header {
     background: #1a1a1a;
     padding: 10px 15px;
