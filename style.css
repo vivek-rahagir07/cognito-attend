@@ -3219,6 +3219,31 @@ button:active,
     }
 }
 
+/* Modal States */
+.terminal-container.minimized {
+    height: 40px !important;
+    overflow: hidden;
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.terminal-container.maximized {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    border-radius: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.terminal-container {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
 .terminal-header {
     background: #1a1a1a;
     padding: 10px 15px;
@@ -3237,7 +3262,14 @@ button:active,
     width: 12px;
     height: 12px;
     border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
+.dot:hover {
+    transform: scale(1.2);
+}
+
 
 .dot.red {
     background: #ff5f56;

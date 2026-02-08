@@ -1144,6 +1144,29 @@ if (document.getElementById('btn-contact')) {
     });
 }
 
+// Window Controls Logic
+function setupTerminalControls(modalId, redId, yellowId, greenId) {
+    const modal = document.getElementById(modalId);
+    const container = modal.querySelector('.terminal-container');
+
+    document.getElementById(redId).onclick = () => {
+        modal.classList.add('hidden');
+        isAIPaused = false;
+        container.classList.remove('minimized', 'maximized');
+    };
+
+    document.getElementById(yellowId).onclick = () => {
+        container.classList.toggle('minimized');
+    };
+
+    document.getElementById(greenId).onclick = () => {
+        container.classList.toggle('maximized');
+    };
+}
+
+setupTerminalControls('about-modal', 'btn-close-about-dot', 'btn-min-about', 'btn-max-about');
+setupTerminalControls('contact-modal', 'btn-close-contact-dot', 'btn-min-contact', 'btn-max-contact');
+
 // Close modals when clicking outside
 window.addEventListener('click', (e) => {
     if (e.target === aboutModal) {
