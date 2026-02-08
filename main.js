@@ -731,6 +731,7 @@ async function processTerminalCommand(e, contentId) {
 - vision        : Our long-term goals
 - privacy       : Data sovereignty statement
 - history       : View command history
+- features      : Key system capabilities
 - cat about.txt : System specifications
 - cat contact.txt: Support information`;
         } else if (command === 'clear') {
@@ -754,6 +755,11 @@ async function processTerminalCommand(e, contentId) {
             } catch (err) { responseText = "Error reading privacy statement."; isError = true; }
         } else if (command === 'history') {
             responseText = terminalHistory.length > 0 ? terminalHistory.join('\n') : "No command history found.";
+        } else if (command === 'features') {
+            try {
+                const res = await fetch('about/features.txt');
+                responseText = await res.text();
+            } catch (err) { responseText = "Error fetching features list."; isError = true; }
         } else if (command === 'about author') {
             try {
                 const res = await fetch('about/author.txt');
