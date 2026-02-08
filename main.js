@@ -256,10 +256,10 @@ class TerminalAudio {
         osc.stop(this.ctx.currentTime + duration);
     }
 
-    playKeyPress() {
+    playLineStrike() {
         if (!this.enabled || !this.ctx) return;
-        const f = 500 + Math.random() * 300; // Soft "tui"
-        this.playTone(f, 0.02, 'sine', 0.01); // Extremely short, extremely soft
+        const f = 400 + Math.random() * 100; // Deeper "thud/click"
+        this.playTone(f, 0.04, 'sine', 0.02);
     }
 
 
@@ -756,7 +756,6 @@ async function typeText(element, text, speed = 20) {
             link.style.borderBottom = '1px dashed var(--accent)';
 
             for (let char of part) {
-                termAudio.playKeyPress();
                 link.textContent += char;
                 element.appendChild(link);
                 const terminalBody = element.closest('.terminal-body');
@@ -780,7 +779,7 @@ async function typeText(element, text, speed = 20) {
             await typeSpan(element, cleanText, 'hl-green', speed);
         } else {
             for (let char of part) {
-                if (char !== ' ' && char !== '\n') termAudio.playKeyPress();
+                if (char === '\n') termAudio.playLineStrike();
                 element.innerHTML += char === '\n' ? '<br>' : char;
                 const terminalBody = element.closest('.terminal-body');
                 if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
@@ -795,7 +794,6 @@ async function typeSpan(element, text, className, speed) {
     span.className = className;
     element.appendChild(span);
     for (let char of text) {
-        termAudio.playKeyPress();
         span.textContent += char;
         const terminalBody = element.closest('.terminal-body');
         if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
