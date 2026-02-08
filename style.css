@@ -3264,6 +3264,37 @@ button:active,
     border-radius: 50%;
     cursor: pointer;
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.dot::before {
+    content: '';
+    font-size: 8px;
+    font-weight: 900;
+    color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.terminal-header:hover .dot::before {
+    opacity: 1;
+}
+
+.dot.red::before {
+    content: '✕';
+}
+
+.dot.yellow::before {
+    content: '−';
+}
+
+.dot.green::before {
+    content: '↔';
+    transform: rotate(45deg);
 }
 
 .dot:hover {
