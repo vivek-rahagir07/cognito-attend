@@ -738,15 +738,16 @@
                 <div class="terminal-title" id="about-title">cognito_attend --info</div>
                 <button id="btn-close-about" class="terminal-close" aria-label="Close Modal">&times;</button>
             </div>
-            <div class="terminal-body">
+            <div class="terminal-body" id="about-modal-body">
                 <div class="terminal-line"><span class="prompt">guest@cognito:~$</span> <span class="command">cat
                         about/content.txt</span></div>
                 <div id="about-terminal-content" class="terminal-content">
                     <p class="glow-text">Loading system information...</p>
                 </div>
-                <div class="terminal-line input-line">
+                <!-- Interactive Input Line -->
+                <div class="input-line">
                     <span class="prompt">guest@cognito:~$</span>
-                    <span class="terminal-input" id="about-input" contenteditable="true" spellcheck="false"
+                    <span id="about-input" class="terminal-input" contenteditable="true" spellcheck="false"
                         data-placeholder="Type 'help' for commands..."></span>
                     <span class="cursor">_</span>
                 </div>
@@ -766,20 +767,21 @@
                 <div class="terminal-title" id="contact-title">cognito_contact --active</div>
                 <button id="btn-close-contact" class="terminal-close" aria-label="Close Modal">&times;</button>
             </div>
-            <div class="terminal-body">
+            <div class="terminal-body" id="contact-modal-body">
                 <div class="terminal-line"><span class="prompt">guest@cognito:~$</span> <span class="command">cat
                         about/contact.txt</span></div>
                 <div id="contact-terminal-content" class="terminal-content">
                     <p class="glow-text">Requesting contact portal...</p>
                 </div>
-                <div class="terminal-line input-line">
+                <!-- Interactive Input Line -->
+                <div class="input-line">
                     <span class="prompt">guest@cognito:~$</span>
-                    <span class="terminal-input" id="contact-input" contenteditable="true" spellcheck="false"
+                    <span id="contact-input" class="terminal-input" contenteditable="true" spellcheck="false"
                         data-placeholder="Type 'help' for commands..."></span>
                     <span class="cursor">_</span>
                 </div>
             </div>
         </div>
     </div>
-<script type="module" src="main.js?v=master_matrix_v2"></script>
+    <script type="module" src="main.js?v=master_matrix_v2"></script>
 </body>

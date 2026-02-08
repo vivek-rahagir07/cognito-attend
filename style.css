@@ -3213,9 +3213,11 @@ button:active,
 .input-line {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0;
+    /* Gap 0 to keep prompt and input tight */
     margin-top: 15px;
     cursor: text;
+    width: 100%;
 }
 
 .terminal-input {
@@ -3228,15 +3230,17 @@ button:active,
     flex: 1;
     white-space: pre-wrap;
     word-break: break-all;
-    min-width: 10px;
+    min-width: 1ch;
     min-height: 1.2rem;
     cursor: text;
     display: inline-block;
+    padding-left: 8px;
+    /* Small gap from prompt */
 }
 
 .terminal-input:empty:before {
     content: attr(data-placeholder);
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.2);
     pointer-events: none;
 }
 
@@ -3247,6 +3251,8 @@ button:active,
     line-height: 1.6;
     max-height: 70vh;
     overflow-y: auto;
+    cursor: text;
+    /* Entire body shows text cursor */
 }
 
 .terminal-line {
@@ -3255,6 +3261,7 @@ button:active,
 
 .prompt {
     color: #27c93f;
+    white-space: nowrap;
 }
 
 .command {
@@ -3280,11 +3287,12 @@ button:active,
 
 .cursor {
     display: inline-block;
-    width: 8px;
-    height: 15px;
+    width: 10px;
+    height: 1.2rem;
     background: var(--accent);
     animation: blink 1s step-end infinite;
     vertical-align: middle;
+    margin-left: 2px;
 }
 
 @keyframes blink {
