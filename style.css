@@ -3215,6 +3215,7 @@ button:active,
     align-items: center;
     gap: 10px;
     margin-top: 15px;
+    cursor: text;
 }
 
 .terminal-input {
@@ -3227,7 +3228,10 @@ button:active,
     flex: 1;
     white-space: pre-wrap;
     word-break: break-all;
-    min-width: 5px;
+    min-width: 10px;
+    min-height: 1.2rem;
+    cursor: text;
+    display: inline-block;
 }
 
 .terminal-input:empty:before {

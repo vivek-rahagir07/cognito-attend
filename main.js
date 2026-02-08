@@ -769,9 +769,21 @@ const contactInput = document.getElementById('contact-input');
 
 if (aboutInput) {
     aboutInput.addEventListener('keydown', (e) => processTerminalCommand(e, 'about-modal', 'about-terminal-content'));
+
+    // Ensure clicking anywhere in the terminal body focuses the input
+    const aboutTerminalBody = document.querySelector('#about-modal .terminal-body');
+    if (aboutTerminalBody) {
+        aboutTerminalBody.addEventListener('click', () => aboutInput.focus());
+    }
 }
 if (contactInput) {
     contactInput.addEventListener('keydown', (e) => processTerminalCommand(e, 'contact-modal', 'contact-terminal-content'));
+
+    // Ensure clicking anywhere in the terminal body focuses the input
+    const contactTerminalBody = document.querySelector('#contact-modal .terminal-body');
+    if (contactTerminalBody) {
+        contactTerminalBody.addEventListener('click', () => contactInput.focus());
+    }
 }
 
 // Update modal triggers to focus input
