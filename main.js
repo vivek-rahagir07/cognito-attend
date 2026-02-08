@@ -206,6 +206,12 @@ const sideNavItems = document.querySelectorAll('#mobile-sidebar .nav-item[data-m
 const sideBtnQr = document.getElementById('side-btn-qr');
 const sideBtnHistory = document.getElementById('side-btn-history');
 const sideBtnExport = document.getElementById('side-btn-export');
+const btnAbout = document.getElementById('btn-about');
+const aboutModal = document.getElementById('about-modal');
+const btnCloseAbout = document.getElementById('btn-close-about');
+const btnContact = document.getElementById('btn-contact');
+const contactModal = document.getElementById('contact-modal');
+const btnCloseContact = document.getElementById('btn-close-contact');
 
 let confirmCallback = null;
 
@@ -665,6 +671,88 @@ if (btnCopyQrLink) {
         });
     });
 }
+
+// About Modal Controls
+if (btnAbout) {
+    btnAbout.addEventListener('click', async () => {
+        isAIPaused = true;
+        aboutModal.classList.remove('hidden');
+        const contentDiv = document.getElementById('about-terminal-content');
+        if (contentDiv) {
+            try {
+                const response = await fetch('about_content.txt');
+                const text = await response.text();
+                contentDiv.innerHTML = text.split('\n').map(line => `<p>${line}</p>`).join('');
+            } catch (e) {
+                contentDiv.innerHTML = '<p class="status-error">Error loading system info.</p>';
+            }
+        }
+    });
+}
+
+if (btnCloseAbout) {
+    btnCloseAbout.addEventListener('click', () => {
+        isAIPaused = false;
+        aboutModal.classList.add('hidden');
+    });
+}
+
+// Contact Modal Controls
+if (btnContact) {
+    btnContact.addEventListener('click', async () => {
+        isAIPaused = true;
+        contactModal.classList.remove('hidden');
+        const contentDiv = document.getElementById('contact-terminal-content');
+        if (contentDiv) {
+            try {
+                const response = await fetch('contact_content.txt');
+                const text = await response.text();
+                contentDiv.innerHTML = text.split('\n').map(line => `<p>${line}</p>`).join('');
+            } catch (e) {
+                contentDiv.innerHTML = '<p class="status-error">Error loading contact portal.</p>';
+            }
+        }
+    });
+}
+
+if (btnCloseContact) {
+    btnCloseContact.addEventListener('click', () => {
+        isAIPaused = false;
+        contactModal.classList.add('hidden');
+    });
+}
+
+// Close modals when clicking outside
+window.addEventListener('click', (e) => {
+    if (e.target === aboutModal) {
+        isAIPaused = false;
+        aboutModal.classList.add('hidden');
+    }
+    if (e.target === contactModal) {
+        isAIPaused = false;
+        contactModal.classList.add('hidden');
+    }
+    if (e.target === qrModal) {
+        isAIPaused = false;
+        qrModal.classList.add('hidden');
+        stopQRRotation();
+    }
+    if (e.target === historyModal) {
+        historyModal.classList.add('hidden');
+    }
+    if (e.target === editModal) {
+        editModal.classList.add('hidden');
+    }
+    if (e.target === profileModal) {
+        profileModal.classList.add('hidden');
+    }
+    if (e.target === magicQrModal) {
+        magicQrModal.classList.add('hidden');
+    }
+    if (e.target === idCardModal) {
+        idCardModal.classList.add('hidden');
+    }
+});
 
 // Attendance Tab Switching
 if (tabPresent && tabAbsent) {

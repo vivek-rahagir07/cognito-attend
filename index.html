@@ -709,11 +709,66 @@
     </div>
 
     <div class="bottom-strip" role="contentinfo">
-
         <div class="footer-center">
+            <button id="btn-about" class="btn-about-trigger" aria-label="Open About Modal">
+                <span class="btn-about-icon">?</span> ABOUT
+            </button>
+
             <img src="folder/cognito attend.png" alt="CognitoAttend Global Logo" class="footer-brand-logo"
                 loading="lazy">
             <span class="footer-brand-name">CognitoAttend</span>
+
+            <button id="btn-contact" class="btn-about-trigger" aria-label="Open Contact Modal">
+                <span class="btn-about-icon">@</span> CONTACT
+            </button>
+        </div>
+    </div>
+
+    <!-- About Terminal Modal -->
+    <div id="about-modal" class="qr-modal-container hidden" role="dialog" aria-labelledby="about-title">
+        <div class="terminal-container">
+            <div class="terminal-header">
+                <div class="terminal-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <div class="terminal-title" id="about-title">cognito_attend --info</div>
+                <button id="btn-close-about" class="terminal-close" aria-label="Close Modal">&times;</button>
+            </div>
+            <div class="terminal-body">
+                <div class="terminal-line"><span class="prompt">guest@cognito:~$</span> <span class="command">cat
+                        about.txt</span></div>
+                <div id="about-terminal-content" class="terminal-content">
+                    <p class="glow-text">Loading system information...</p>
+                </div>
+                <div class="terminal-line"><span class="prompt">guest@cognito:~$</span> <span class="cursor">_</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Terminal Modal -->
+    <div id="contact-modal" class="qr-modal-container hidden" role="dialog" aria-labelledby="contact-title">
+        <div class="terminal-container">
+            <div class="terminal-header">
+                <div class="terminal-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <div class="terminal-title" id="contact-title">cognito_contact --active</div>
+                <button id="btn-close-contact" class="terminal-close" aria-label="Close Modal">&times;</button>
+            </div>
+            <div class="terminal-body">
+                <div class="terminal-line"><span class="prompt">guest@cognito:~$</span> <span class="command">cat
+                        contact.txt</span></div>
+                <div id="contact-terminal-content" class="terminal-content">
+                    <p class="glow-text">Requesting contact portal...</p>
+                </div>
+                <div class="terminal-line"><span class="prompt">guest@cognito:~$</span> <span class="cursor">_</span>
+                </div>
+            </div>
         </div>
     </div>
 </body>
