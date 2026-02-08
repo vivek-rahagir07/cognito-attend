@@ -580,8 +580,10 @@ async function startQRRotation() {
             let baseUrl = window.location.href.split('?')[0].split('#')[0].replace('index.html', '');
             if (!baseUrl.endsWith('/')) baseUrl += '/';
 
-            const expiryTime = Date.now() + refreshMs;
-            const attendanceUrl = `${baseUrl}qr.html?s=${currentSpace.id}&n=${currentNonce}&exp=${expiryTime}`;
+            const now = Date.now();
+            const refreshMs = parseInt(currentSpace.config.qrRefreshInterval || 15000);
+            const expiryTime = now + refreshMs;
+            const attendanceUrl = `${baseUrl}qr.html?s=${currentSpace.id}&n=${currentNonce}&exp=${expiryTime}&sync=${now}`;
 
             const generateQR = () => {
                 const qrEngine = window.QRCode || (typeof QRCode !== 'undefined' ? QRCode : null);

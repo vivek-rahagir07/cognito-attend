@@ -1679,6 +1679,43 @@ input:focus {
     z-index: 5;
 }
 
+.qr-hologram-seal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120%;
+    height: 120%;
+    background: linear-gradient(45deg,
+            rgba(0, 242, 255, 0.1),
+            rgba(255, 0, 242, 0.1),
+            rgba(0, 242, 255, 0.1));
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 10;
+    animation: qr-hologram-rotate 4s linear infinite;
+    filter: blur(10px);
+    opacity: 0.6;
+}
+
+@keyframes qr-hologram-rotate {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+        filter: hue-rotate(0deg) blur(10px);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) rotate(180deg) scale(1.1);
+        filter: hue-rotate(180deg) blur(5px);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg) scale(1);
+        filter: hue-rotate(360deg) blur(10px);
+    }
+}
+
+
 @keyframes qr-scan {
 
     0%,
