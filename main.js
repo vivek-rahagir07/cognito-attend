@@ -1218,8 +1218,10 @@ function setupTerminalControls(modalId, redId, yellowId, greenId, closeBtnId) {
     if (document.getElementById(closeBtnId)) document.getElementById(closeBtnId).onclick = closeModal;
 
     if (document.getElementById(yellowId)) {
-        container.classList.toggle('minimized');
-    };
+        document.getElementById(yellowId).onclick = () => {
+            container.classList.toggle('minimized');
+        };
+    }
 
     document.getElementById(greenId).onclick = () => {
         container.classList.toggle('maximized');
