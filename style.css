@@ -3498,7 +3498,6 @@ button:active,
     color: #fff;
     font-family: 'JetBrains Mono', 'Courier New', monospace;
     font-size: 0.9rem;
-    flex: 1;
     white-space: pre-wrap;
     word-break: break-all;
     min-width: 1ch;
