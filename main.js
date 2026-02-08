@@ -681,14 +681,37 @@ if (btnCloseContact) {
 }
 
 
-async function typeText(element, text, speed = 30) {
-    const words = text.split(' ');
-    element.innerText = '';
-    for (let word of words) {
-        element.innerText += word + ' ';
-        const terminalBody = element.closest('.terminal-body');
-        if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
-        await new Promise(r => setTimeout(r, speed));
+async function typeText(element, text, speed = 20) {
+    const urlRegex = /(https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    element.innerHTML = '';
+
+    for (let part of parts) {
+        if (part.match(urlRegex)) {
+            const link = document.createElement('a');
+            link.href = part.startsWith('http') ? part : 'https://' + part;
+            link.target = '_blank';
+            link.className = 'terminal-link';
+            link.style.color = 'var(--accent)';
+            link.style.textDecoration = 'none';
+            link.style.borderBottom = '1px dashed var(--accent)';
+
+            // Type the link text
+            for (let char of part) {
+                link.textContent += char;
+                element.appendChild(link);
+                const terminalBody = element.closest('.terminal-body');
+                if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+                await new Promise(r => setTimeout(r, speed));
+            }
+        } else {
+            for (let char of part) {
+                element.innerHTML += char === '\n' ? '<br>' : char;
+                const terminalBody = element.closest('.terminal-body');
+                if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+                await new Promise(r => setTimeout(r, speed));
+            }
+        }
     }
 }
 

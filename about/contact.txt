@@ -1,11 +1,13 @@
 SYSTEM: Contact Portal
 STATUS: Ready for connection
 SUPPORT: support@cognitoattend.com
+📞 MOBILE: 9996445592
 
 RESOURCES:
-> Documentation: docs.cognitoattend.com
-> GitHub: github.com/cognito-attend
-> Discord: discord.gg/cognito-community
+> 🌐 Website: https://cognitoattend.vivek-rahagir.com/
+> 🐙 GitHub: https://github.com/vivek-rahagir07
+> 💼 LinkedIn: https://www.linkedin.com/feed/
+> 💬 Discord: discord.gg/cognito-community
 
 DEVELOPMENT TEAM:
 > Lead Architect: Vivek R.
