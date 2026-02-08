@@ -672,15 +672,119 @@ if (btnCopyQrLink) {
     });
 }
 
-// About Modal Controls
+if (btnCloseContact) {
+    btnCloseContact.addEventListener('click', () => {
+        isAIPaused = false;
+        contactModal.classList.add('hidden');
+    });
+}
+
+// Terminal Command Processing
+async function processTerminalCommand(e, terminalId, contentId) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        const inputEl = e.target;
+        const command = inputEl.innerText.trim().toLowerCase();
+        const contentDiv = document.getElementById(contentId);
+
+        if (!command) return;
+
+        // Add user command to history
+        const historyLine = document.createElement('div');
+        historyLine.className = 'terminal-line';
+        historyLine.innerHTML = `<span class="prompt">guest@cognito:~$</span> <span class="command">${command}</span>`;
+        contentDiv.appendChild(historyLine);
+
+        // Process Command
+        let responseText = "";
+        let isError = false;
+
+        if (command === 'help') {
+            responseText = `Available Commands:
+- about author  : Learn about Rahagir
+- why cognito   : The philosophy behind the system
+- help          : Show this list
+- clear         : Wipe terminal clean
+- cat about.txt : System specifications
+- cat contact.txt: Support information`;
+        } else if (command === 'clear') {
+            contentDiv.innerHTML = '';
+            inputEl.innerText = '';
+            return;
+        } else if (command === 'about author') {
+            try {
+                const res = await fetch('about/author.txt');
+                responseText = await res.text();
+            } catch (err) {
+                responseText = "Error fetching author info.";
+                isError = true;
+            }
+        } else if (command === 'why cognito' || command === 'why cognito attend?') {
+            try {
+                const res = await fetch('about/why.txt');
+                responseText = await res.text();
+            } catch (err) {
+                responseText = "Error fetching philosophy info.";
+                isError = true;
+            }
+        } else if (command === 'cat about.txt') {
+            try {
+                const res = await fetch('about/content.txt');
+                responseText = await res.text();
+            } catch (err) {
+                responseText = "Error reading about.txt";
+                isError = true;
+            }
+        } else if (command === 'cat contact.txt') {
+            try {
+                const res = await fetch('about/contact.txt');
+                responseText = await res.text();
+            } catch (err) {
+                responseText = "Error reading contact.txt";
+                isError = true;
+            }
+        } else {
+            responseText = `Command not found: ${command}. Type 'help' for available options.`;
+            isError = true;
+        }
+
+        // Display Response
+        const responseLine = document.createElement('div');
+        responseLine.className = isError ? 'status-error' : 'glow-text';
+        responseLine.style.whiteSpace = 'pre-wrap';
+        responseLine.style.margin = '10px 0';
+        responseLine.innerText = responseText;
+        contentDiv.appendChild(responseLine);
+
+        // Clear input and scroll
+        inputEl.innerText = '';
+        const terminalBody = inputEl.closest('.terminal-body');
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+    }
+}
+
+// Attach listeners to inputs
+const aboutInput = document.getElementById('about-input');
+const contactInput = document.getElementById('contact-input');
+
+if (aboutInput) {
+    aboutInput.addEventListener('keydown', (e) => processTerminalCommand(e, 'about-modal', 'about-terminal-content'));
+}
+if (contactInput) {
+    contactInput.addEventListener('keydown', (e) => processTerminalCommand(e, 'contact-modal', 'contact-terminal-content'));
+}
+
+// Update modal triggers to focus input
 if (btnAbout) {
     btnAbout.addEventListener('click', async () => {
         isAIPaused = true;
         aboutModal.classList.remove('hidden');
+        if (aboutInput) setTimeout(() => aboutInput.focus(), 100);
+
         const contentDiv = document.getElementById('about-terminal-content');
-        if (contentDiv) {
+        if (contentDiv && contentDiv.children.length === 1) { // Load default only if empty
             try {
-                const response = await fetch('about_content.txt');
+                const response = await fetch('about/content.txt');
                 const text = await response.text();
                 contentDiv.innerHTML = text.split('\n').map(line => `<p>${line}</p>`).join('');
             } catch (e) {
@@ -690,35 +794,22 @@ if (btnAbout) {
     });
 }
 
-if (btnCloseAbout) {
-    btnCloseAbout.addEventListener('click', () => {
-        isAIPaused = false;
-        aboutModal.classList.add('hidden');
-    });
-}
-
-// Contact Modal Controls
 if (btnContact) {
     btnContact.addEventListener('click', async () => {
         isAIPaused = true;
         contactModal.classList.remove('hidden');
+        if (contactInput) setTimeout(() => contactInput.focus(), 100);
+
         const contentDiv = document.getElementById('contact-terminal-content');
-        if (contentDiv) {
+        if (contentDiv && contentDiv.children.length === 1) { // Load default only if empty
             try {
-                const response = await fetch('contact_content.txt');
+                const response = await fetch('about/contact.txt');
                 const text = await response.text();
                 contentDiv.innerHTML = text.split('\n').map(line => `<p>${line}</p>`).join('');
             } catch (e) {
                 contentDiv.innerHTML = '<p class="status-error">Error loading contact portal.</p>';
             }
         }
-    });
-}
-
-if (btnCloseContact) {
-    btnCloseContact.addEventListener('click', () => {
-        isAIPaused = false;
-        contactModal.classList.add('hidden');
     });
 }
 

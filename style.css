@@ -3210,6 +3210,32 @@ button:active,
     color: #fff;
 }
 
+.input-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.terminal-input {
+    outline: none;
+    border: none;
+    background: transparent;
+    color: #fff;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 0.9rem;
+    flex: 1;
+    white-space: pre-wrap;
+    word-break: break-all;
+    min-width: 5px;
+}
+
+.terminal-input:empty:before {
+    content: attr(data-placeholder);
+    color: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+}
+
 .terminal-body {
     padding: 20px;
     color: #d1d1d1;
