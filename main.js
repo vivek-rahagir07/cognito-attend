@@ -98,6 +98,7 @@ const idCardModal = document.getElementById('id-card-modal');
 const btnCloseIdCard = document.getElementById('btn-close-id-card');
 const idCardScene = document.getElementById('id-card-scene');
 const btnSaveWallet = document.getElementById('btn-save-wallet');
+let terminalHistory = [];
 const idCardPhoto = document.getElementById('id-card-photo');
 const idCardName = document.getElementById('id-card-name');
 const idCardReg = document.getElementById('id-card-reg');
@@ -147,6 +148,8 @@ const qrTimerDisplay = document.getElementById('qr-timer');
 const qrStatus = document.getElementById('qr-status');
 const qrScanCountDisplay = document.getElementById('qr-scan-count');
 const configQrRefresh = document.getElementById('config-qr-refresh');
+const aboutModal = document.getElementById('about-modal');
+const contactModal = document.getElementById('contact-modal');
 const qrExpiredOverlay = document.getElementById('qr-expired-overlay');
 
 const btnToggleCamera = document.getElementById('btn-toggle-camera');
@@ -207,10 +210,8 @@ const sideBtnQr = document.getElementById('side-btn-qr');
 const sideBtnHistory = document.getElementById('side-btn-history');
 const sideBtnExport = document.getElementById('side-btn-export');
 const btnAbout = document.getElementById('btn-about');
-const aboutModal = document.getElementById('about-modal');
 const btnCloseAbout = document.getElementById('btn-close-about');
 const btnContact = document.getElementById('btn-contact');
-const contactModal = document.getElementById('contact-modal');
 const btnCloseContact = document.getElementById('btn-close-contact');
 
 let confirmCallback = null;
@@ -693,6 +694,7 @@ async function processTerminalCommand(e, contentId) {
         historyLine.className = 'terminal-line';
         historyLine.innerHTML = `<span class="prompt">guest@cognito:~$</span> <span class="command">${command}</span>`;
         contentDiv.appendChild(historyLine);
+        terminalHistory.push(command);
 
         let responseText = "";
         let isError = false;
@@ -705,6 +707,8 @@ async function processTerminalCommand(e, contentId) {
 - clear         : Wipe terminal clean
 - mission       : Our core purpose
 - vision        : Our long-term goals
+- privacy       : Data sovereignty statement
+- history       : View command history
 - cat about.txt : System specifications
 - cat contact.txt: Support information`;
         } else if (command === 'clear') {
@@ -721,6 +725,13 @@ async function processTerminalCommand(e, contentId) {
                 const res = await fetch('about/vision.txt');
                 responseText = await res.text();
             } catch (err) { responseText = "Error fetching vision info."; isError = true; }
+        } else if (command === 'privacy') {
+            try {
+                const res = await fetch('about/privacy.txt');
+                responseText = await res.text();
+            } catch (err) { responseText = "Error reading privacy statement."; isError = true; }
+        } else if (command === 'history') {
+            responseText = terminalHistory.length > 0 ? terminalHistory.join('\n') : "No command history found.";
         } else if (command === 'about author') {
             try {
                 const res = await fetch('about/author.txt');
