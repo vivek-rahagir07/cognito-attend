@@ -257,8 +257,30 @@ class TerminalAudio {
     }
 
     playKeyPress() {
-        const f = 800 + Math.random() * 200; // Higher pitch for "tui"
-        this.playTone(f, 0.03, 'sine', 0.03); // Softer sine wave, very short duration
+        if (!this.enabled || !this.ctx) return;
+
+        // Mechanical click using noise
+        const bufferSize = this.ctx.sampleRate * 0.02; // 20ms
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1200; // Keycap tap frequency
+        filter.Q.value = 1.5;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.015, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.02);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start();
     }
 
 
