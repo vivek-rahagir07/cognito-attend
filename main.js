@@ -680,6 +680,18 @@ if (btnCloseContact) {
     });
 }
 
+
+async function typeText(element, text, speed = 30) {
+    const words = text.split(' ');
+    element.innerText = '';
+    for (let word of words) {
+        element.innerText += word + ' ';
+        const terminalBody = element.closest('.terminal-body');
+        if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+        await new Promise(r => setTimeout(r, speed));
+    }
+}
+
 // Terminal System Logic
 async function processTerminalCommand(e, contentId) {
     if (e.key === 'Enter') {
@@ -690,11 +702,21 @@ async function processTerminalCommand(e, contentId) {
 
         if (!command) return;
 
+        // Add user command to history
         const historyLine = document.createElement('div');
         historyLine.className = 'terminal-line';
         historyLine.innerHTML = `<span class="prompt">guest@cognito:~$</span> <span class="command">${command}</span>`;
         contentDiv.appendChild(historyLine);
         terminalHistory.push(command);
+
+        // Show Loading State
+        const loadingLine = document.createElement('div');
+        loadingLine.className = 'status-online';
+        loadingLine.style.margin = '5px 0';
+        loadingLine.innerText = "Processing...";
+        contentDiv.appendChild(loadingLine);
+
+        await new Promise(r => setTimeout(r, 400)); // Brief pause for realism
 
         let responseText = "";
         let isError = false;
@@ -757,14 +779,23 @@ async function processTerminalCommand(e, contentId) {
             isError = true;
         }
 
+        // Remove loading state
+        contentDiv.removeChild(loadingLine);
+
         const responseLine = document.createElement('div');
         responseLine.className = isError ? 'status-error' : 'glow-text';
         responseLine.style.whiteSpace = 'pre-wrap';
         responseLine.style.margin = '10px 0';
-        responseLine.innerText = responseText;
         contentDiv.appendChild(responseLine);
 
         inputEl.innerText = '';
+
+        if (isError) {
+            responseLine.innerText = responseText;
+        } else {
+            await typeText(responseLine, responseText);
+        }
+
         const terminalBody = inputEl.closest('.terminal-body');
         if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
     }
