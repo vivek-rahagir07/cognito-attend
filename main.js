@@ -686,7 +686,7 @@ async function processTerminalCommand(e, contentId) {
         const inputEl = e.target;
         const command = inputEl.innerText.trim().toLowerCase();
         const contentDiv = document.getElementById(contentId);
-        
+
         if (!command) return;
 
         const historyLine = document.createElement('div');
@@ -703,12 +703,24 @@ async function processTerminalCommand(e, contentId) {
 - why cognito   : The philosophy behind the system
 - help          : Show this list
 - clear         : Wipe terminal clean
+- mission       : Our core purpose
+- vision        : Our long-term goals
 - cat about.txt : System specifications
 - cat contact.txt: Support information`;
         } else if (command === 'clear') {
             contentDiv.innerHTML = '';
             inputEl.innerText = '';
             return;
+        } else if (command === 'mission') {
+            try {
+                const res = await fetch('about/mission.txt');
+                responseText = await res.text();
+            } catch (err) { responseText = "Error fetching mission info."; isError = true; }
+        } else if (command === 'vision') {
+            try {
+                const res = await fetch('about/vision.txt');
+                responseText = await res.text();
+            } catch (err) { responseText = "Error fetching vision info."; isError = true; }
         } else if (command === 'about author') {
             try {
                 const res = await fetch('about/author.txt');
@@ -772,7 +784,7 @@ if (document.getElementById('btn-about')) {
             const input = document.getElementById('about-input');
             if (input) input.focus();
         }, 150);
-        
+
         const contentDiv = document.getElementById('about-terminal-content');
         if (contentDiv && contentDiv.children.length <= 1) {
             try {
@@ -792,7 +804,7 @@ if (document.getElementById('btn-contact')) {
             const input = document.getElementById('contact-input');
             if (input) input.focus();
         }, 150);
-        
+
         const contentDiv = document.getElementById('contact-terminal-content');
         if (contentDiv && contentDiv.children.length <= 1) {
             try {
