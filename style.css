@@ -3333,6 +3333,26 @@ button:active,
     font-weight: 700;
 }
 
+/* Word Highlights */
+.hl-accent {
+    color: var(--accent);
+    text-shadow: 0 0 8px rgba(0, 242, 255, 0.6);
+    font-weight: 700;
+}
+
+.hl-pink {
+    color: #ff00f2;
+    text-shadow: 0 0 8px rgba(255, 0, 242, 0.6);
+    font-weight: 700;
+}
+
+.hl-gold {
+    color: #ffbd2e;
+    text-shadow: 0 0 8px rgba(255, 189, 46, 0.6);
+    font-weight: 700;
+}
+
+
 .section-title {
     color: #ff00f2;
     font-weight: 700;

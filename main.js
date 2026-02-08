@@ -736,12 +736,15 @@ if (btnCloseContact) {
 
 
 async function typeText(element, text, speed = 20) {
-    const urlRegex = /(https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+)/g;
-    const parts = text.split(urlRegex);
+    // Regex for URLs and custom highlighting tags: [[accent]], {{pink}}, <<gold>>
+    const combinedRegex = /(https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+|\[\[.*?\]\]|\{\{.*?\}\}|<<.*?>>)/g;
+    const parts = text.split(combinedRegex);
     element.innerHTML = '';
 
     for (let part of parts) {
-        if (part.match(urlRegex)) {
+        if (!part) continue;
+
+        if (part.match(/https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+/)) {
             const link = document.createElement('a');
             link.href = part.startsWith('http') ? part : 'https://' + part;
             link.target = '_blank';
@@ -750,11 +753,46 @@ async function typeText(element, text, speed = 20) {
             link.style.textDecoration = 'none';
             link.style.borderBottom = '1px dashed var(--accent)';
 
-            // Type the link text
             for (let char of part) {
                 termAudio.playKeyPress();
                 link.textContent += char;
                 element.appendChild(link);
+                const terminalBody = element.closest('.terminal-body');
+                if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+                await new Promise(r => setTimeout(r, speed));
+            }
+        } else if (part.startsWith('[[') && part.endsWith(']]')) {
+            const cleanText = part.slice(2, -2);
+            const span = document.createElement('span');
+            span.className = 'hl-accent';
+            element.appendChild(span);
+            for (let char of cleanText) {
+                termAudio.playKeyPress();
+                span.textContent += char;
+                const terminalBody = element.closest('.terminal-body');
+                if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+                await new Promise(r => setTimeout(r, speed));
+            }
+        } else if (part.startsWith('{{') && part.endsWith('}}')) {
+            const cleanText = part.slice(2, -2);
+            const span = document.createElement('span');
+            span.className = 'hl-pink';
+            element.appendChild(span);
+            for (let char of cleanText) {
+                termAudio.playKeyPress();
+                span.textContent += char;
+                const terminalBody = element.closest('.terminal-body');
+                if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+                await new Promise(r => setTimeout(r, speed));
+            }
+        } else if (part.startsWith('<<') && part.endsWith('>>')) {
+            const cleanText = part.slice(2, -2);
+            const span = document.createElement('span');
+            span.className = 'hl-gold';
+            element.appendChild(span);
+            for (let char of cleanText) {
+                termAudio.playKeyPress();
+                span.textContent += char;
                 const terminalBody = element.closest('.terminal-body');
                 if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
                 await new Promise(r => setTimeout(r, speed));
@@ -770,6 +808,7 @@ async function typeText(element, text, speed = 20) {
         }
     }
 }
+
 
 async function bootTerminal(contentId) {
     const contentDiv = document.getElementById(contentId);

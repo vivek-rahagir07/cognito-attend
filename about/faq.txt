@@ -9,20 +9,20 @@ An admin generates a time-limited QR code. Users scan it using their device, ent
 3. Can students or users fake attendance?
 No. CognitoAttend uses dynamic QR refresh, session validation, and optional location/device checks to minimize proxy or duplicate attendance.
 
-4. Is registration mandatory for marking attendance?
-Not always. CognitoAttend supports both:
-- Registered users (with Reg No / Course)
-- Unregistered or visitor entries (e.g., library, events)
+Q: What makes CognitoAttend different?
+A: It's [[serverless AI]]. Most systems send your face to a cloud. {{CognitoAttend}} processes everything [[locally]] on your device.
 
-5. Can attendance be edited later?
-Yes. Authorized admins can edit user details, correct entries, or delete records with proper access control.
+Q: Is my data safe?
+A: Yes. We use {{Firebase Secure Auth}} and only store encrypted biometric descriptors, not your actual photos. <<Privacy-first>> architecture.
 
-6. Does CognitoAttend generate reports?
-Absolutely. You can generate:
-- Daily / date-wise attendance
-- Master reports
-- CSV and PDF exports
-These are useful for audits, records, and compliance.
+Q: Which devices are supported?
+A: Any modern browser with [[camera access]]. Works best on [[Chrome]], [[Safari]], and [[Edge]].
+
+Q: Can I use it for my organization?
+A: Absolutely! Simply [[Create a Workspace]], set your location, and starting inviting members via {{secure QR}}.
+
+Q: What is ExamGuard Pro?
+A: Our advanced <<Proctoring Solution>> that detects unauthorized devices and behavior using [[Context-Aware AI]].
 
 7. Is CognitoAttend suitable for colleges only?
 No. It can be used for:
