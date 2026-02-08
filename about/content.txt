@@ -1,3 +1,17 @@
+      ___           ___           ___     
+     /  /\         /  /\         /  /\    
+    /  /::\       /  /::\       /  /::\   
+   /  /:/\:\     /  /:/\:\     /  /:/\:\  
+  /  /:/  \:\   /  /:/  \:\   /  /:/  \:\ 
+ /__/:/ \__\:\ /__/:/ \__\:\ /__/:/ \__\:\
+ \  \:\ /  /:/ \  \:\ /  /:/ \  \:\ /  /:/
+  \  \:\  /:/   \  \:\  /:/   \  \:\  /:/ 
+   \  \:\/:/     \  \:\/:/     \  \:\/:/  
+    \  \::/       \  \::/       \  \::/   
+     \__\/         \__\/         \__\/    
+                                          
+[ COGNITO ATTEND SYSTEM -- v1.0.0 ]
+-----------------------------------
 SYSTEM: CognitoAttend v.1.0.0
 STATUS: Operational
 DESCRIPTION: Next-Gen Biometric Attendance & Monitoring System powered by advanced AI and Face-API technology.

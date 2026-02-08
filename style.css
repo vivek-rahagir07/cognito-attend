@@ -3136,17 +3136,76 @@ button:active,
 }
 
 .terminal-container {
-    width: 90%;
-    max-width: 600px;
-    background: #0d0d0d;
-    border: 2px solid var(--accent);
-    border-radius: 12px;
-    box-shadow: 0 0 40px rgba(0, 242, 255, 0.2), inset 0 0 20px rgba(0, 242, 255, 0.1);
+    width: 95%;
+    max-width: 800px;
+    background: #050505;
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    border-radius: 8px;
+    box-shadow:
+        0 0 50px rgba(0, 0, 0, 0.9),
+        0 0 30px rgba(0, 242, 255, 0.1),
+        inset 0 0 100px rgba(0, 242, 255, 0.05);
     overflow: hidden;
     font-family: 'JetBrains Mono', monospace;
     position: relative;
-    animation: terminal-entry 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: terminal-entry 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
+
+/* CRT Scanline Effect */
+.terminal-container::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%,
+            rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg,
+            rgba(255, 0, 0, 0.03),
+            rgba(0, 255, 0, 0.01),
+            rgba(0, 0, 255, 0.03));
+    z-index: 100;
+    background-size: 100% 4px, 3px 100%;
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+/* Cathode Ray Tube Flicker */
+@keyframes terminal-flicker {
+    0% {
+        opacity: 0.97;
+    }
+
+    5% {
+        opacity: 0.95;
+    }
+
+    10% {
+        opacity: 0.97;
+    }
+
+    15% {
+        opacity: 0.94;
+    }
+
+    25% {
+        opacity: 0.98;
+    }
+
+    30% {
+        opacity: 0.95;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.terminal-body {
+    animation: terminal-flicker 0.15s infinite;
+}
+
 
 @keyframes terminal-entry {
     from {
@@ -3287,19 +3346,61 @@ button:active,
 
 .cursor {
     display: inline-block;
-    width: 10px;
-    height: 1.2rem;
+    width: 8px;
+    height: 1.1rem;
     background: var(--accent);
-    animation: blink 1s step-end infinite;
+    box-shadow: 0 0 8px var(--accent);
+    animation: terminal-cursor-blink 1s step-end infinite;
     vertical-align: middle;
     margin-left: 2px;
 }
 
-@keyframes blink {
+@keyframes terminal-cursor-blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
     50% {
         opacity: 0;
     }
 }
+
+/* Booting Sequence Animations */
+.boot-line {
+    opacity: 0;
+    transform: translateX(-10px);
+    animation: boot-line-fade 0.3s forwards;
+}
+
+@keyframes boot-line-fade {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.terminal-system-stats {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px 20px;
+    margin: 15px 0;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+    border-left: 3px solid var(--accent);
+}
+
+.stat-label {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.stat-value {
+    color: #fff;
+}
+
 
 .terminal-body ul {
     list-style: none;

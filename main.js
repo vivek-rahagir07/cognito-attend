@@ -222,6 +222,60 @@ let hudScanDir = 1;
 let hudRotation = 0; // Continuous rotation for rings
 const lastSpoken = {};
 
+// Terminal State
+let terminalHistoryIndex = -1;
+const COMMANDS = ['help', 'about author', 'why cognito', 'clear', 'mission', 'vision', 'privacy', 'history', 'features', 'faqs', 'cat about.txt', 'cat contact.txt', 'ls', 'system', 'whoami'];
+
+// Synthetic Audio Engine
+class TerminalAudio {
+    constructor() {
+        this.ctx = null;
+        this.enabled = true;
+    }
+
+    init() {
+        if (this.ctx) return;
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    playTone(freq, duration, type = 'square', volume = 0.1) {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+        gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.00001, this.ctx.currentTime + duration);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+    }
+
+    playKeyPress() {
+        const f = 150 + Math.random() * 50;
+        this.playTone(f, 0.05, 'sine', 0.05);
+    }
+
+    playBoot() {
+        const now = this.ctx.currentTime;
+        [200, 300, 400, 600].forEach((f, i) => {
+            setTimeout(() => this.playTone(f, 0.1, 'square', 0.05), i * 100);
+        });
+    }
+
+    playError() {
+        this.playTone(150, 0.3, 'sawtooth', 0.1);
+    }
+}
+
+const termAudio = new TerminalAudio();
+
+
 let configLeafletMap = null;
 let configMarker = null;
 let configRadiusCircle = null;
@@ -698,6 +752,7 @@ async function typeText(element, text, speed = 20) {
 
             // Type the link text
             for (let char of part) {
+                termAudio.playKeyPress();
                 link.textContent += char;
                 element.appendChild(link);
                 const terminalBody = element.closest('.terminal-body');
@@ -706,6 +761,7 @@ async function typeText(element, text, speed = 20) {
             }
         } else {
             for (let char of part) {
+                if (char !== ' ' && char !== '\n') termAudio.playKeyPress();
                 element.innerHTML += char === '\n' ? '<br>' : char;
                 const terminalBody = element.closest('.terminal-body');
                 if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
@@ -715,22 +771,94 @@ async function typeText(element, text, speed = 20) {
     }
 }
 
+async function bootTerminal(contentId) {
+    const contentDiv = document.getElementById(contentId);
+    if (!contentDiv) return;
+
+    contentDiv.innerHTML = '';
+    const lines = [
+        "INITIALIZING COGNITO_CORE...",
+        "LOADING BIOMETRIC_MODULES... [OK]",
+        "CONNECTING TO FIRESTORE_GRID... [OK]",
+        "ESTABLISHING SECURE_SHELL... [OK]",
+        "WELCOME TO COGNITO_ATTEND TERMINAL v1.0.0",
+        "------------------------------------------"
+    ];
+
+    for (const line of lines) {
+        const p = document.createElement('div');
+        p.className = 'boot-line';
+        p.innerText = line;
+        contentDiv.appendChild(p);
+        termAudio.playTone(400 + Math.random() * 100, 0.05, 'sine', 0.02);
+        await new Promise(r => setTimeout(r, 100));
+    }
+}
+
+
 // Terminal System Logic
 async function processTerminalCommand(e, contentId) {
+    const inputEl = e.target;
+    const contentDiv = document.getElementById(contentId);
+
+    // Audio Init on first interaction
+    termAudio.init();
+
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (terminalHistory.length > 0) {
+            terminalHistoryIndex = Math.min(terminalHistoryIndex + 1, terminalHistory.length - 1);
+            inputEl.innerText = terminalHistory[terminalHistory.length - 1 - terminalHistoryIndex];
+            placeCaretAtEnd(inputEl);
+        }
+        return;
+    }
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (terminalHistoryIndex > 0) {
+            terminalHistoryIndex--;
+            inputEl.innerText = terminalHistory[terminalHistory.length - 1 - terminalHistoryIndex];
+        } else {
+            terminalHistoryIndex = -1;
+            inputEl.innerText = '';
+        }
+        placeCaretAtEnd(inputEl);
+        return;
+    }
+
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const current = inputEl.innerText.trim();
+        if (!current) return;
+        const matches = COMMANDS.filter(c => c.startsWith(current));
+        if (matches.length === 1) {
+            inputEl.innerText = matches[0];
+            placeCaretAtEnd(inputEl);
+        } else if (matches.length > 1) {
+            const matchesLine = document.createElement('div');
+            matchesLine.style.color = '#888';
+            matchesLine.innerText = matches.join('  ');
+            contentDiv.appendChild(matchesLine);
+        }
+        return;
+    }
+
     if (e.key === 'Enter') {
         e.preventDefault();
-        const inputEl = e.target;
         const command = inputEl.innerText.trim().toLowerCase();
-        const contentDiv = document.getElementById(contentId);
 
         if (!command) return;
 
+        terminalHistoryIndex = -1;
         // Add user command to history
         const historyLine = document.createElement('div');
         historyLine.className = 'terminal-line';
         historyLine.innerHTML = `<span class="prompt">guest@cognito:~$</span> <span class="command">${command}</span>`;
         contentDiv.appendChild(historyLine);
-        terminalHistory.push(command);
+
+        if (terminalHistory[terminalHistory.length - 1] !== command) {
+            terminalHistory.push(command);
+        }
 
         // Show Loading State
         const loadingLine = document.createElement('div');
@@ -739,35 +867,63 @@ async function processTerminalCommand(e, contentId) {
         loadingLine.innerText = "Processing...";
         contentDiv.appendChild(loadingLine);
 
-        await new Promise(r => setTimeout(r, 400)); // Brief pause for realism
+        await new Promise(r => setTimeout(r, 200));
 
         let responseText = "";
         let isError = false;
+        let useHtml = false;
 
         if (command === 'help') {
-            responseText = `Available Commands:
-- about author  : Learn about Rahagir
-- why cognito   : The philosophy behind the system
-- help          : Show this list
+            responseText = `AVAILABLE COMMANDS:
+- about author  : Learn about Vivek (Rahagir)
+- why cognito   : System development philosophy
+- help          : Display this command list
 - clear         : Wipe terminal clean
-- mission       : Our core purpose
-- vision        : Our long-term goals
+- mission       : Our purpose
+- vision        : Future roadmap
 - privacy       : Data sovereignty statement
-- history       : View command history
-- features      : Key system capabilities
+- history       : View recent commands
+- features      : Core capabilities
 - faqs          : Frequently Asked Questions
-- cat about.txt : System specifications
-- cat contact.txt: Support information`;
+- cat [file]    : Read file contents (e.g., cat about.txt)
+- ls            : List available files
+- system        : Show holographic system stats
+- whoami        : Current session identity`;
         } else if (command === 'clear') {
             contentDiv.innerHTML = '';
             inputEl.innerText = '';
             return;
-        } else if (command === 'mission') {
+        } else if (command === 'ls') {
+            responseText = `about.txt
+contact.txt
+faq.txt
+features.txt
+mission.txt
+philosophy.txt
+privacy.txt
+vision.txt`;
+        } else if (command === 'whoami') {
+            responseText = `USER: Guest_Access_Node_${Math.floor(Math.random() * 9999)}
+ACCESS_LEVEL: Unauthorized (Public)
+IP: 127.0.0.1 (Masked)
+STATUS: Viewing Project Documentation`;
+        } else if (command === 'system' || command === 'neofetch') {
+            useHtml = true;
+            responseText = `
+                <div class="terminal-system-stats">
+                    <span class="stat-label">OS</span><span class="stat-value">Cognito_HUD v1.9</span>
+                    <span class="stat-label">KERNEL</span><span class="stat-value">Browser_Native_AI</span>
+                    <span class="stat-label">UPTIME</span><span class="stat-value">${Math.floor(performance.now() / 1000)}s</span>
+                    <span class="stat-label">WORKSPACE</span><span class="stat-value">${currentSpace ? currentSpace.name : 'None (Splash)'}</span>
+                    <span class="stat-label">BIOMETRICS</span><span class="stat-value">${isModelsLoaded ? 'ONLINE' : 'OFFLINE'}</span>
+                    <span class="stat-label">CPU_USAGE</span><span class="stat-value">${Math.floor(Math.random() * 30 + 10)}% (Browser)</span>
+                </div>`;
+        } else if (command === 'mission' || command.includes('mission')) {
             try {
                 const res = await fetch('about/mission.txt');
                 responseText = await res.text();
             } catch (err) { responseText = "Error fetching mission info."; isError = true; }
-        } else if (command === 'vision') {
+        } else if (command === 'vision' || command.includes('vision')) {
             try {
                 const res = await fetch('about/vision.txt');
                 responseText = await res.text();
@@ -794,7 +950,7 @@ async function processTerminalCommand(e, contentId) {
                 const res = await fetch('about/why.txt');
                 responseText = await res.text();
             } catch (err) { responseText = "Error fetching philosophy info."; isError = true; }
-        } else if (command === 'cat about.txt') {
+        } else if (command === 'cat about.txt' || command === 'cat content.txt') {
             try {
                 const res = await fetch('about/content.txt');
                 responseText = await res.text();
@@ -812,6 +968,7 @@ async function processTerminalCommand(e, contentId) {
         } else {
             responseText = `Command not found: ${command}. Type 'help' for available options.`;
             isError = true;
+            termAudio.playError();
         }
 
         // Remove loading state
@@ -827,6 +984,8 @@ async function processTerminalCommand(e, contentId) {
 
         if (isError) {
             responseLine.innerText = responseText;
+        } else if (useHtml) {
+            responseLine.innerHTML = responseText;
         } else {
             await typeText(responseLine, responseText);
         }
@@ -835,6 +994,19 @@ async function processTerminalCommand(e, contentId) {
         if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
     }
 }
+
+function placeCaretAtEnd(el) {
+    el.focus();
+    if (typeof window.getSelection != "undefined" && typeof document.createRange != "undefined") {
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+}
+
 
 // Global Terminal Event Delegation
 document.addEventListener('keydown', (e) => {
@@ -856,42 +1028,60 @@ document.addEventListener('click', (e) => {
 if (document.getElementById('btn-about')) {
     document.getElementById('btn-about').addEventListener('click', async () => {
         isAIPaused = true;
+        termAudio.init();
+        termAudio.playBoot();
         document.getElementById('about-modal').classList.remove('hidden');
+
+        const contentDiv = document.getElementById('about-terminal-content');
+        if (contentDiv) {
+            await bootTerminal('about-terminal-content');
+
+            try {
+                const response = await fetch('about/content.txt');
+                const text = await response.text();
+                const responseLine = document.createElement('div');
+                responseLine.className = 'glow-text';
+                contentDiv.appendChild(responseLine);
+                await typeText(responseLine, text);
+            } catch (e) { contentDiv.innerHTML += '<p class="status-error">Error loading system info.</p>'; }
+        }
+
         setTimeout(() => {
             const input = document.getElementById('about-input');
             if (input) input.focus();
         }, 150);
-
-        const contentDiv = document.getElementById('about-terminal-content');
-        if (contentDiv && contentDiv.children.length <= 1) {
-            try {
-                const response = await fetch('about/content.txt');
-                const text = await response.text();
-                contentDiv.innerHTML = text.split('\n').map(line => `<p>${line}</p>`).join('');
-            } catch (e) { contentDiv.innerHTML = '<p class="status-error">Error loading system info.</p>'; }
-        }
     });
 }
+
 
 if (document.getElementById('btn-contact')) {
     document.getElementById('btn-contact').addEventListener('click', async () => {
         isAIPaused = true;
+        termAudio.init();
+        termAudio.playBoot();
         document.getElementById('contact-modal').classList.remove('hidden');
+
+        const contentDiv = document.getElementById('contact-terminal-content');
+        if (contentDiv) {
+            await bootTerminal('contact-terminal-content');
+
+            try {
+                const response = await fetch('about/contact.txt');
+                const text = await response.text();
+                const responseLine = document.createElement('div');
+                responseLine.className = 'glow-text';
+                contentDiv.appendChild(responseLine);
+                await typeText(responseLine, text);
+            } catch (e) { contentDiv.innerHTML += '<p class="status-error">Error loading contact portal.</p>'; }
+        }
+
         setTimeout(() => {
             const input = document.getElementById('contact-input');
             if (input) input.focus();
         }, 150);
-
-        const contentDiv = document.getElementById('contact-terminal-content');
-        if (contentDiv && contentDiv.children.length <= 1) {
-            try {
-                const response = await fetch('about/contact.txt');
-                const text = await response.text();
-                contentDiv.innerHTML = text.split('\n').map(line => `<p>${line}</p>`).join('');
-            } catch (e) { contentDiv.innerHTML = '<p class="status-error">Error loading contact portal.</p>'; }
-        }
     });
 }
+
 // Close modals when clicking outside
 window.addEventListener('click', (e) => {
     if (e.target === aboutModal) {
