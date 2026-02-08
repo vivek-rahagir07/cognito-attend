@@ -257,9 +257,10 @@ class TerminalAudio {
     }
 
     playKeyPress() {
-        const f = 150 + Math.random() * 50;
-        this.playTone(f, 0.05, 'sine', 0.05);
+        const f = 800 + Math.random() * 200; // Higher pitch for "tui"
+        this.playTone(f, 0.03, 'sine', 0.03); // Softer sine wave, very short duration
     }
+
 
     playBoot() {
         const now = this.ctx.currentTime;

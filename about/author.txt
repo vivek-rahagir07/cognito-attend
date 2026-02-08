@@ -7,12 +7,12 @@ Your data, your machine, your <<privacy>>.
 
 -----------------------------------
 "Engineering is the art of making what you want from what you can get."
-o their limits.
 
-Rahagir’s development philosophy is simple:
+[[Rahagir’s development philosophy]]:
 "If it can run on a browser, it should respect the user, protect their data, and scale without fear."
 
 He focuses on:
-> Exploring client-side AI feasibility
-> Designing products that are technically bold yet practically usable
-> Learning by shipping, not by theorizing
+- Building [[privacy-first systems]]
+- Exploring [[client-side AI]] feasibility
+- Designing products that are technically bold yet practically usable
+- Learning by shipping, not by theorizing
