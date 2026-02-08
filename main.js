@@ -732,6 +732,7 @@ async function processTerminalCommand(e, contentId) {
 - privacy       : Data sovereignty statement
 - history       : View command history
 - features      : Key system capabilities
+- faqs          : Frequently Asked Questions
 - cat about.txt : System specifications
 - cat contact.txt: Support information`;
         } else if (command === 'clear') {
@@ -780,6 +781,11 @@ async function processTerminalCommand(e, contentId) {
                 const res = await fetch('about/contact.txt');
                 responseText = await res.text();
             } catch (err) { responseText = "Error reading contact.txt"; isError = true; }
+        } else if (command === 'faqs') {
+            try {
+                const res = await fetch('about/faq.txt');
+                responseText = await res.text();
+            } catch (err) { responseText = "Error fetching FAQs."; isError = true; }
         } else {
             responseText = `Command not found: ${command}. Type 'help' for available options.`;
             isError = true;
