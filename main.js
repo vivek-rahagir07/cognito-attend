@@ -806,6 +806,16 @@ sideNavItems.forEach(item => {
     });
 });
 
+const mobilePanelHandle = document.getElementById('mobile-panel-handle');
+if (mobilePanelHandle) {
+    mobilePanelHandle.addEventListener('click', () => {
+        const panel = document.querySelector('.controls-panel');
+        if (panel) {
+            panel.classList.toggle('active');
+        }
+    });
+}
+
 if (sideBtnQr) sideBtnQr.addEventListener('click', () => {
     btnQrPresence.click();
     toggleSidebar(false);
@@ -3179,6 +3189,12 @@ function setMode(mode) {
         attendInfo.classList.remove('hidden');
         document.getElementById('btn-mode-attend').classList.add('active');
         statusBadge.innerText = "Attendance Monitor";
+    }
+
+    // Expand panel on mobile when mode changes
+    if (window.innerWidth <= 600) {
+        const panel = document.querySelector('.controls-panel');
+        if (panel) panel.classList.add('active');
     }
 }
 
