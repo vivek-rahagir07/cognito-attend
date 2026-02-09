@@ -1682,19 +1682,42 @@ input:focus {
 }
 
 
-@media (max-width: 480px) {
+@media (max-width: 485px) {
     .bottom-strip {
         height: auto;
-        padding-bottom: 25px;
-        /* Ensure space above safe area */
+        padding: 15px 10px 30px;
+    }
+
+    .footer-center {
+        gap: 10px !important;
+    }
+
+    .footer-brand-logo {
+        width: 25px !important;
+    }
+
+    .footer-brand-name {
+        font-size: 0.95rem !important;
+    }
+
+    .btn-about-trigger {
+        padding: 8px 12px !important;
+        font-size: 0.7rem !important;
+        gap: 5px !important;
+    }
+
+    .btn-about-icon {
+        width: 14px !important;
+        height: 14px !important;
+        font-size: 0.6rem !important;
     }
 
     .shining-logo {
-        width: 35px;
+        width: 30px;
     }
 
     .nav-brand {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 }
 
