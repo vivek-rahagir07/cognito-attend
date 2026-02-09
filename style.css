@@ -149,7 +149,42 @@
     overflow: hidden;
     pointer-events: none;
     background: #000;
+    perspective: 2000px;
 }
+
+.aura-bg-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80vw;
+    height: 80vw;
+    max-width: 800px;
+    max-height: 800px;
+    background: url('folder/cognito attend.png') no-repeat center;
+    background-size: contain;
+    transform: translate(-50%, -50%);
+    opacity: 0.03;
+    filter: grayscale(1) invert(1) brightness(0.5);
+    pointer-events: none;
+    z-index: -1;
+    animation: main-bg-flip 20s linear infinite;
+}
+
+@keyframes main-bg-flip {
+    0% {
+        transform: translate(-50%, -50%) rotateY(0deg) rotateZ(0deg);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) rotateY(180deg) rotateZ(5deg);
+        filter: grayscale(1) invert(1) brightness(0.8) blur(2px);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotateY(360deg) rotateZ(0deg);
+    }
+}
+
 
 .aura-blob {
     position: absolute;
@@ -3575,6 +3610,9 @@ button:active,
     overflow-y: auto;
     cursor: text;
     /* Entire body shows text cursor */
+    perspective: 1000px;
+    position: relative;
+    overflow-x: hidden;
 }
 
 .terminal-line {
@@ -3790,23 +3828,45 @@ button:active,
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 300px;
-    height: 300px;
+    width: 320px;
+    height: 320px;
     background: url('folder/cognito attend.png') no-repeat center;
     background-size: contain;
+    transform-style: preserve-3d;
     transform: translate(-50%, -50%);
-    opacity: 0.2;
+    opacity: 0.15;
     pointer-events: none;
     z-index: -1;
-    filter: grayscale(1) brightness(2);
+    filter: grayscale(1) brightness(1.5);
+    animation: terminal-coin-flip 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes terminal-coin-flip {
     0% {
-        transform: translate(-50%, -50%) rotateY(0deg);
+        transform: translate(-50%, -50%) rotateY(0deg) scale(1) rotateZ(0deg);
+        filter: grayscale(1) brightness(1.5) drop-shadow(0 0 0px var(--accent));
+    }
+
+    25% {
+        transform: translate(-50%, -50%) rotateY(90deg) scale(1.05) rotateZ(2deg);
+        filter: grayscale(0.5) brightness(2) drop-shadow(0 0 10px var(--accent));
+        opacity: 0.25;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) rotateY(180deg) scale(1.1) rotateZ(0deg);
+        filter: grayscale(0) brightness(2.5) drop-shadow(0 0 25px var(--accent));
+        opacity: 0.35;
+    }
+
+    75% {
+        transform: translate(-50%, -50%) rotateY(270deg) scale(1.05) rotateZ(-2deg);
+        filter: grayscale(0.5) brightness(2) drop-shadow(0 0 10px var(--accent));
+        opacity: 0.25;
     }
 
     100% {
-        transform: translate(-50%, -50%) rotateY(360deg);
+        transform: translate(-50%, -50%) rotateY(360deg) scale(1) rotateZ(0deg);
+        filter: grayscale(1) brightness(1.5) drop-shadow(0 0 0px var(--accent));
     }
 }
