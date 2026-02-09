@@ -873,7 +873,7 @@ if (btnCloseContact) {
 }
 
 
-async function typeText(element, text, speed = 18) {
+async function typeText(element, text, speed = 10) {
     // Regex for URLs, markdown links, and tags
     const combinedRegex = /(https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+|\[\[.*?\]\]|\{\{.*?\}\}|<<.*?>>|\(\(.*?\)\)|\*\*.*?\*\*|\[.*?\]\(.*?\))/g;
     const parts = text.split(combinedRegex);
