@@ -3279,6 +3279,8 @@ button:active,
 }
 
 .terminal-body {
+    position: relative;
+    z-index: 2;
     animation: terminal-flicker 0.15s infinite;
 }
 
@@ -3468,6 +3470,8 @@ button:active,
 }
 
 .terminal-header {
+    position: relative;
+    z-index: 2;
     background: #1a1a1a;
     padding: 10px 15px;
     display: flex;
@@ -3821,7 +3825,7 @@ button:active,
     transform: translate(-50%, -50%);
     opacity: 0.15;
     pointer-events: none;
-    z-index: -1;
+    z-index: 1;
     filter: grayscale(1) brightness(1.5);
     animation: terminal-coin-flip 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
