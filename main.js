@@ -882,7 +882,7 @@ async function typeText(element, text, speed = 20) {
     for (let part of parts) {
         if (!part || !isAIPaused) continue;
 
-        if (part.match(/^https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+$/)) {
+        if (part.match(/^(https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+)$/)) {
             const link = document.createElement('a');
             link.href = part.startsWith('http') ? part : 'https://' + part;
             link.target = '_blank';
