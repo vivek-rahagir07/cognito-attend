@@ -874,15 +874,15 @@ if (btnCloseContact) {
 
 
 async function typeText(element, text, speed = 20) {
-    // Regex for URLs and tags: [[accent]], {{pink}}, <<gold>>, ((blue)), **green**
-    const combinedRegex = /(https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+|\[\[.*?\]\]|\{\{.*?\}\}|<<.*?>>|\(\(.*?\)\)|\*\*.*?\*\*)/g;
+    // Regex for URLs, markdown links, and tags
+    const combinedRegex = /(https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+|\[\[.*?\]\]|\{\{.*?\}\}|<<.*?>>|\(\(.*?\)\)|\*\*.*?\*\*|\[.*?\]\(.*?\))/g;
     const parts = text.split(combinedRegex);
     element.innerHTML = '';
 
     for (let part of parts) {
         if (!part || !isAIPaused) continue;
 
-        if (part.match(/https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+/)) {
+        if (part.match(/^https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+$/)) {
             const link = document.createElement('a');
             link.href = part.startsWith('http') ? part : 'https://' + part;
             link.target = '_blank';
@@ -891,7 +891,36 @@ async function typeText(element, text, speed = 20) {
             link.style.textDecoration = 'none';
             link.style.borderBottom = '1px dashed var(--accent)';
 
+            if (part.toLowerCase().endsWith('.pdf') || part.toLowerCase().endsWith('.zip')) {
+                link.setAttribute('download', '');
+            }
+
             for (let char of part) {
+                if (!isAIPaused) break;
+                link.textContent += char;
+                element.appendChild(link);
+                const terminalBody = element.closest('.terminal-body');
+                if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+                await new Promise(r => setTimeout(r, speed));
+            }
+        } else if (part.startsWith('[') && part.includes('](') && part.endsWith(')')) {
+            // Markdown Link [text](url)
+            const label = part.match(/\[(.*?)\]/)[1];
+            const url = part.match(/\((.*?)\)/)[1];
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.className = 'terminal-link';
+            link.style.color = 'var(--accent)';
+            link.style.textDecoration = 'none';
+            link.style.borderBottom = '1px dashed var(--accent)';
+
+            if (url.toLowerCase().endsWith('.pdf') || url.toLowerCase().endsWith('.zip')) {
+                link.setAttribute('download', '');
+            }
+
+            for (let char of label) {
                 if (!isAIPaused) break;
                 link.textContent += char;
                 element.appendChild(link);
@@ -1101,7 +1130,7 @@ STATUS: Viewing Project Documentation`;
                 responseText = await res.text();
             } catch (err) { responseText = "Error fetching features list."; isError = true; }
         } else if (command === 'documentation') {
-            responseText = "SYSTEM_DOCS: [[CognitoAttend Documentation v1.0]]\\n<<Download Link:>> [folder/documentation.pdf](folder/documentation.pdf)\\n\\n(Note: Click the link above to download)";
+            responseText = "SYSTEM_DOCS: [[CognitoAttend Documentation v1.0]]\\n<<Download Link:>> [Download Manual (PDF)](folder/documentation.pdf)\\n\\n(Note: The manual will be downloaded to your device.)";
         } else if (command === 'about developer') {
             try {
                 const res = await fetch('about/developer.txt');
