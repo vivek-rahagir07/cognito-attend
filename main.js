@@ -812,6 +812,10 @@ if (mobilePanelHandle) {
         const panel = document.querySelector('.controls-panel');
         if (panel) {
             panel.classList.toggle('active');
+            // Accessibility & Audio
+            if (termAudio) {
+                panel.classList.contains('active') ? termAudio.playTone(600, 0.1) : termAudio.playTone(400, 0.1);
+            }
         }
     });
 }

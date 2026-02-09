@@ -443,6 +443,12 @@ h1 {
     animation: float 8s ease-in-out infinite;
 }
 
+@media (max-width: 600px) {
+    .controls-panel {
+        animation: none !important;
+    }
+}
+
 .controls-panel:hover {
     border-color: rgba(255, 255, 255, 0.15);
     box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.9);
@@ -515,6 +521,7 @@ h1 {
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .stat-box:hover {
@@ -2503,11 +2510,13 @@ button:active,
         padding: 15px 20px 40px;
         max-height: 85vh;
         overflow-y: auto;
+        border-width: 2px;
     }
 
     .controls-panel.active {
         transform: translateY(0);
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
+        box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.95);
+        border-color: rgba(0, 242, 255, 0.3);
     }
 
     .panel-handle {
