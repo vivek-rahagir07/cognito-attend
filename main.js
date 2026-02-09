@@ -304,7 +304,7 @@ const lastSpoken = {};
 
 // Terminal State
 let terminalHistoryIndex = -1;
-const COMMANDS = ['help', 'about author', 'why cognito', 'clear', 'mission', 'vision', 'privacy', 'history', 'features', 'faqs', 'cat about.txt', 'cat contact.txt', 'ls', 'whoami'];
+const COMMANDS = ['help', 'about developer', 'why cognito', 'clear', 'mission', 'vision', 'privacy', 'history', 'features', 'faqs', 'cat about.txt', 'cat contact.txt', 'ls', 'whoami'];
 
 // Synthetic Audio Engine
 class TerminalAudio {
@@ -986,7 +986,7 @@ async function processTerminalCommand(e, contentId) {
 
         if (command === 'help') {
             responseText = `AVAILABLE COMMANDS:
-- about author  : Learn about Vivek (Rahagir)
+- about developer : Learn about Vivek (Rahagir)
 - why cognito   : System development philosophy
 - help          : Display this command list
 - clear         : Wipe terminal clean
@@ -1039,11 +1039,11 @@ STATUS: Viewing Project Documentation`;
                 const res = await fetch('about/features.txt');
                 responseText = await res.text();
             } catch (err) { responseText = "Error fetching features list."; isError = true; }
-        } else if (command === 'about author') {
+        } else if (command === 'about developer') {
             try {
-                const res = await fetch('about/author.txt');
+                const res = await fetch('about/developer.txt');
                 responseText = await res.text();
-            } catch (err) { responseText = "Error fetching author info."; isError = true; }
+            } catch (err) { responseText = "Error fetching developer info."; isError = true; }
         } else if (command === 'why cognito' || command === 'why cognito attend?') {
             try {
                 const res = await fetch('about/why.txt');
