@@ -304,7 +304,7 @@ const lastSpoken = {};
 
 // Terminal State
 let terminalHistoryIndex = -1;
-const COMMANDS = ['help', 'about developer', 'why cognito', 'clear', 'mission', 'vision', 'privacy', 'history', 'features', 'faqs', 'cat about.txt', 'cat contact.txt', 'ls', 'whoami'];
+const COMMANDS = ['help', 'about developer', 'why cognito', 'clear', 'mission', 'vision', 'privacy', 'history', 'features', 'faqs', 'documentation', 'cat about.txt', 'cat contact.txt', 'ls', 'whoami'];
 
 // Synthetic Audio Engine
 class TerminalAudio {
@@ -1056,6 +1056,7 @@ async function processTerminalCommand(e, contentId) {
 - history       : View recent commands
 - features      : Core capabilities
 - faqs          : Frequently Asked Questions
+- documentation : Download system documentation PDF
 - cat [file]    : Read file contents (e.g., cat about.txt)
 - ls            : List available files
 - whoami        : Current session identity`;
@@ -1099,6 +1100,8 @@ STATUS: Viewing Project Documentation`;
                 const res = await fetch('about/features.txt');
                 responseText = await res.text();
             } catch (err) { responseText = "Error fetching features list."; isError = true; }
+        } else if (command === 'documentation') {
+            responseText = "SYSTEM_DOCS: [[CognitoAttend Documentation v1.0]]\\n<<Download Link:>> [folder/documentation.pdf](folder/documentation.pdf)\\n\\n(Note: Click the link above to download)";
         } else if (command === 'about developer') {
             try {
                 const res = await fetch('about/developer.txt');
