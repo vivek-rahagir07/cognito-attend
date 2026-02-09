@@ -49,7 +49,6 @@
             justify-content: center;
             padding: 20px;
             padding-bottom: 80px;
-            /* Space for bottom strip */
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -487,13 +486,13 @@
                     return;
                 }
 
-                // 1. Strict Expiration Check
+                // Expiration
                 if (expiryTime && Date.now() > parseInt(expiryTime)) {
                     showErrorScreen("Link Expired", "This QR code session has expired. The dashboard has likely generated a fresh one.");
                     return;
                 }
 
-                // 2. Already Used Check
+                // Reuse Check
                 const usedNonces = JSON.parse(localStorage.getItem(`used_nonces_${spaceId}`) || '[]');
                 if (usedNonces.includes(nonce)) {
                     formView.style.display = 'none';
@@ -538,7 +537,7 @@
             // Always Name
             addField('name', 'Your Name', 'text', 'Enter your full name');
 
-            // Configurable fields
+            // Fields
             if (config.regNo) addField('regNo', 'Registration Number', 'text', 'Enter registration number');
             if (config.course) addField('course', 'Course / Department', 'text', 'Enter course or department');
             if (config.email) addField('email', 'Email ID', 'email', 'Enter email address');
@@ -546,7 +545,7 @@
             if (config.bloodGroup) addField('bloodGroup', 'Blood Group', 'text', 'Enter blood group');
             if (config.weight) addField('weight', 'Weight (kg)', 'text', 'Enter weight');
 
-            // Always Gender for voice customization
+            // Gender
             const genderGroup = document.createElement('div');
             genderGroup.className = 'input-group';
             genderGroup.innerHTML = `

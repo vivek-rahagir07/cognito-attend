@@ -393,7 +393,6 @@ h1 {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* This removes black bars by filling container */
 }
 
 #overlay {
@@ -544,7 +543,6 @@ h1 {
 .mode-toggle {
     display: flex;
     flex-wrap: wrap;
-    /* Improved responsiveness for mobile */
     gap: 8px;
     background: #111;
     padding: 8px;
@@ -621,14 +619,14 @@ h1 {
     transform: scale(0.98);
 }
 
-/* Registration Actions */
+/* Reg Actions */
 .registration-actions {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-/* Registration */
+/* Reg */
 #reg-form .btn-secondary {
     border: 1px solid var(--border);
     padding: 14px;
@@ -751,8 +749,7 @@ input:focus {
     background: #1a1a1a;
 }
 
-/* Enhanced Footer Branding */
-/* Enhanced Footer Branding (3-Column Layout) */
+/* Footer */
 .bottom-strip {
     position: fixed;
     bottom: 0;
@@ -943,7 +940,7 @@ input:focus {
     }
 }
 
-/* Removed Top Nav Bar Styles */
+/* Nav */
 .nav-logo-container {
     display: flex;
     align-items: center;
@@ -1012,7 +1009,6 @@ input:focus {
 
 .portal-spline {
     flex: 1.5;
-    /* Give more space to characters */
     height: 100vh;
     position: relative;
     z-index: 1;
@@ -1302,7 +1298,6 @@ input:focus {
         transition: opacity 1s ease;
     }
 
-    /* Dim spline when portal card is active */
     .portal-container:not(.splash-active) .portal-spline {
         opacity: 0.3;
     }
@@ -1313,7 +1308,7 @@ input:focus {
         width: 95%;
     }
 
-    /* Mobile Splash State */
+    /* Splash */
     .portal-card.mobile-hidden {
         display: none;
     }
@@ -1558,7 +1553,7 @@ input:focus {
     background: #cbd5e1;
 }
 
-/* Viewfinder Styles */
+/* Viewfinder */
 .camera-viewfinder {
     position: absolute;
     top: 0;
@@ -1687,7 +1682,7 @@ input:focus {
     }
 }
 
-/* QR Attendance Modal */
+/* QR Modal */
 .qr-modal-container {
     position: fixed;
     top: 0;
@@ -1814,7 +1809,7 @@ input:focus {
     transform: rotate(90deg);
 }
 
-/* History Table Styles */
+/* History Table */
 .history-table {
     width: 100%;
     border-collapse: collapse;
@@ -1876,7 +1871,7 @@ input:focus {
     box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
 }
 
-/* --- Biometric Preloader --- */
+/* Preloader */
 #preloader {
     position: fixed;
     top: 0;
@@ -1993,7 +1988,7 @@ input:focus {
     }
 }
 
-/* People Management Styles */
+/* People Mgmt */
 .management-person-card {
     padding: 15px 20px;
     border-bottom: 3px solid var(--border);
@@ -2081,7 +2076,7 @@ input:focus {
     color: var(--danger);
 }
 
-/* Data Stream Effect */
+/* Data Stream */
 .data-stream {
     position: absolute;
     width: 100%;
@@ -2094,7 +2089,7 @@ input:focus {
     opacity: 0.1;
 }
 
-/* UX Refinements */
+/* UX */
 #people-search {
     background: rgba(255, 255, 255, 0.05);
     border: 3px solid rgba(0, 242, 255, 0.25);
@@ -2156,7 +2151,7 @@ input:focus {
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Analytics & Registration Smoothness */
+/* Analytics */
 #analytics-panel {
     animation: slide-up 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -2195,7 +2190,7 @@ input:focus {
     }
 }
 
-/* Biometric Scanner Enhanced HUD */
+/* HUD */
 #overlay {
     filter: drop-shadow(0 0 5px rgba(0, 242, 255, 0.3));
 }
@@ -2204,14 +2199,14 @@ input:focus {
     filter: drop-shadow(0 0 8px var(--accent));
 }
 
-/* Mobile Tweak for Performance */
+/* Mobile Perf */
 @media (max-width: 480px) {
     #analytics-panel canvas {
         max-height: 180px;
     }
 }
 
-/* Performance Optimizations */
+/* Perf */
 .qr-modal-content,
 #video,
 #overlay,
@@ -2224,17 +2219,14 @@ input:focus {
     transform: translateZ(0);
 }
 
-/* Reduced transparency for mobile performance */
 @media (max-width: 768px) {
 
     .glass-panel,
     .portal-card,
     .qr-modal-content {
         backdrop-filter: blur(10px);
-        /* Reduced blur for performance */
         -webkit-backdrop-filter: blur(10px);
         background: rgba(15, 15, 15, 0.9);
-        /* More opaque */
     }
 
     .scanning-line {
@@ -2248,7 +2240,7 @@ input:focus {
     scroll-behavior: smooth;
 }
 
-/* Enhanced Mesh Pulse */
+/* Mesh Pulse */
 @keyframes mesh-pulse {
     0% {
         filter: drop-shadow(0 0 2px var(--accent));
@@ -2267,13 +2259,12 @@ input:focus {
     animation: mesh-pulse 4s infinite ease-in-out;
 }
 
-/* Final Mobile Polish */
+/* Mobile Polish */
 @media (max-width: 600px) {
     :root {
         --nav-height: 70px;
     }
 
-    /* Prevent iOS zoom on input focus */
     input {
         font-size: 16px !important;
     }
@@ -2305,7 +2296,6 @@ input:focus {
         white-space: nowrap;
     }
 
-    /* More aggressive hiding for tablets/phones */
     @media (max-width: 900px) {
 
         #btn-qr-presence,
@@ -2472,7 +2462,7 @@ button:active,
     animation: fadeIn 0.3s ease;
 }
 
-/* Operation Layout Tweaks */
+/* Ops Layout */
 @media (max-width: 600px) {
     .main-container {
         padding: 0;
@@ -2621,7 +2611,7 @@ button:active,
     }
 }
 
-/* Tactical Radar Pulse */
+/* Radar Pulse */
 .radar-pulse {
     width: 20px;
     height: 20px;
@@ -2672,7 +2662,7 @@ button:active,
     }
 }
 
-/* Profile Modal Styles */
+/* Profile Modal */
 .profile-modal-content {
     max-width: 500px;
     padding: 40px 30px;
@@ -2802,7 +2792,6 @@ button:active,
     font-size: 0.8rem;
 }
 
-/* Make names clickable in lists */
 .list-item,
 .management-person-card {
     cursor: pointer;
@@ -2813,7 +2802,7 @@ button:active,
     text-decoration: underline;
 }
 
-/* Digital ID Card */
+/* Digital ID */
 .id-card-modal-content {
     background: transparent;
     border: none;
@@ -3087,7 +3076,7 @@ button:active,
     font-style: italic;
 }
 
-/* Mobile Adjustments for Card */
+/* Mobile adjustments */
 @media (max-height: 700px) {
     .id-card-perspective {
         height: 420px;
@@ -3100,7 +3089,7 @@ button:active,
     }
 }
 
-/* Camera Toggle Styles */
+/* Cam Toggle */
 .viewfinder-ui.bottom-row {
     position: absolute;
     bottom: 20px;
@@ -3185,7 +3174,7 @@ button:active,
     margin-bottom: 30px;
 }
 
-/* About Button & Terminal Modal */
+/* Terminal */
 .btn-about-trigger {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -3238,7 +3227,7 @@ button:active,
     animation: terminal-entry 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-/* CRT Scanline Effect */
+/* CRT Effect */
 .terminal-container::before {
     content: " ";
     display: block;
@@ -3258,7 +3247,7 @@ button:active,
     opacity: 0.3;
 }
 
-/* Cathode Ray Tube Flicker */
+/* Flicker */
 @keyframes terminal-flicker {
     0% {
         opacity: 0.97;
@@ -3306,7 +3295,7 @@ button:active,
     }
 }
 
-/* Modal States */
+/* Modals */
 .terminal-container.minimized {
     height: 40px !important;
     overflow: hidden;
@@ -3331,7 +3320,6 @@ button:active,
 }
 
 
-/* Tier 2 Enhancements */
 .terminal-footer {
     height: 25px;
     background: rgba(0, 0, 0, 0.6);
@@ -3371,7 +3359,7 @@ button:active,
     z-index: 0;
 }
 
-/* Glitch Effect */
+/* Glitch */
 .glitch-effect {
     position: relative;
     animation: glitch-color 4s infinite linear alternate-reverse;
@@ -3441,7 +3429,6 @@ button:active,
         transform: skew(0.85deg);
     }
 
-    /* ... shortened for performance ... */
     100% {
         clip: rect(13px, 9999px, 20px, 0);
         transform: skew(0.25deg);
@@ -3460,7 +3447,7 @@ button:active,
     }
 }
 
-/* Progress Bars */
+/* Progress */
 .progress-container {
     width: 200px;
     height: 6px;
@@ -3572,7 +3559,6 @@ button:active,
     display: flex;
     align-items: center;
     gap: 0;
-    /* Gap 0 to keep prompt and input tight */
     margin-top: 15px;
     cursor: text;
     width: 100%;
@@ -3609,7 +3595,6 @@ button:active,
     max-height: 70vh;
     overflow-y: auto;
     cursor: text;
-    /* Entire body shows text cursor */
     perspective: 1000px;
     position: relative;
     overflow-x: hidden;
@@ -3634,7 +3619,7 @@ button:active,
     font-weight: 700;
 }
 
-/* Word Highlights */
+/* Highlights */
 .hl-accent {
     color: var(--accent);
     text-shadow: 0 0 8px rgba(0, 242, 255, 0.6);
@@ -3700,7 +3685,7 @@ button:active,
     }
 }
 
-/* Booting Sequence Animations */
+/* Booting */
 .boot-line {
     opacity: 0;
     transform: translateX(-10px);
@@ -3823,7 +3808,7 @@ button:active,
     }
 }
 
-/* Rotating Terminal Logo Background */
+/* Logo BG */
 .terminal-logo-bg {
     position: absolute;
     top: 50%;

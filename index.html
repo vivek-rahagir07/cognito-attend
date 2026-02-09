@@ -65,7 +65,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
-    <!-- Structured Data -->
+    <!-- SEO -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -82,7 +82,7 @@
     }
     </script>
     <style>
-        /* QR Expired Overlay */
+        /* QR Expired */
         .qr-wrapper {
             position: relative;
         }
@@ -129,7 +129,7 @@
 </head>
 
 <body>
-    <!-- Atmospheric Aura Blobs -->
+    <!-- Aura -->
     <div class="aura-container" aria-hidden="true">
         <div class="aura-bg-logo"></div>
         <div class="aura-blob aura-1"></div>
@@ -137,7 +137,7 @@
         <div class="aura-blob aura-3"></div>
     </div>
 
-    <!-- Biometric Preloader -->
+    <!-- Preloader -->
     <div id="preloader">
         <div class="bio-scanner">
             <div class="bio-fingerprint"></div>
@@ -222,7 +222,7 @@
                 style="color: var(--danger); text-align: center; display: block; margin-top: 10px;"></small>
         </div>
 
-        <!-- Mobile Splash View -->
+        <!-- Mobile Splash -->
         <div id="portal-mobile-start" class="mobile-only">
             <div class="mobile-welcome-text">
                 <h2>Welcome to</h2>
@@ -251,7 +251,7 @@
             <div id="system-status" class="status-badge status-loading" aria-live="polite">Initializing System...</div>
         </div>
 
-        <!-- Mobile Side Navigation -->
+        <!-- Mobile Nav -->
         <div id="mobile-sidebar" class="sidebar-container hidden" role="navigation" aria-label="Mobile Navigation">
             <div class="sidebar-header">
                 <h3>Menu</h3>
@@ -389,7 +389,7 @@
                             Not
                             set</small>
 
-                        <!-- Map Preview for Setting Location -->
+                        <!-- Map Preview -->
                         <div id="config-map-container"
                             style="width: 100%; height: 180px; border-radius: 12px; margin-top: 15px; border: 1px solid rgba(0, 242, 255, 0.2); overflow: hidden; display: none; position: relative;">
                             <div id="config-map" style="width: 100%; height: 100%;"></div>
@@ -510,7 +510,7 @@
         </div>
     </div>
 
-    <!-- History Modal -->
+    <!-- History -->
     <div id="history-modal" class="qr-modal-container hidden" role="dialog" aria-labelledby="history-modal-title">
         <div class="qr-modal-content" style="max-width: 800px; width: 95%;">
             <button id="btn-close-history" class="btn-close" aria-label="Close History Modal">&times;</button>
@@ -552,7 +552,7 @@
         </div>
     </div>
 
-    <!-- Edit Person Modal -->
+    <!-- Edit Modal -->
     <div id="edit-modal" class="qr-modal-container hidden" role="dialog" aria-labelledby="edit-modal-title">
         <div class="qr-modal-content">
             <button id="btn-close-edit" class="btn-close" aria-label="Close Edit Modal">&times;</button>
@@ -583,7 +583,7 @@
         </div>
     </div>
 
-    <!-- Magic QR Modal -->
+    <!-- Magic QR -->
     <div id="magic-qr-modal" class="qr-modal-container hidden" role="dialog" aria-labelledby="magic-qr-title">
         <div class="qr-modal-content" style="max-width: 500px; padding: 40px;">
             <button id="btn-close-magic-qr" class="btn-close" aria-label="Close Magic QR">&times;</button>
@@ -615,7 +615,7 @@
         </div>
     </div>
 
-    <!-- Profile Popup Modal -->
+    <!-- Profile Modal -->
     <div id="profile-modal" class="qr-modal-container hidden" role="dialog" aria-labelledby="profile-name">
         <div class="qr-modal-content profile-modal-content">
             <button id="btn-close-profile" class="btn-close" aria-label="Close Profile">&times;</button>
@@ -642,7 +642,7 @@
         </div>
     </div>
 
-    <!-- Digital ID Card Modal -->
+    <!-- ID Card -->
     <div id="id-card-modal" class="qr-modal-container hidden" role="dialog" aria-labelledby="id-card-title">
         <div class="id-card-modal-content">
             <button id="btn-close-id-card" class="btn-close" aria-label="Close ID Card">&times;</button>
@@ -731,7 +731,7 @@
         </div>
     </div>
 
-    <!-- About Terminal Modal -->
+    <!-- About Terminal -->
     <div id="about-modal" class="qr-modal-container hidden" role="dialog" aria-labelledby="about-title">
         <div class="terminal-container">
             <div class="terminal-header">
@@ -751,7 +751,7 @@
                 <div id="about-terminal-content" class="terminal-content">
                     <p class="glow-text">Loading system information...</p>
                 </div>
-                <!-- Interactive Input Line -->
+                <!-- Input -->
                 <div class="input-line">
                     <span class="prompt">guest@cognito:~$</span>
                     <span id="about-input" class="terminal-input" contenteditable="true" spellcheck="false"
@@ -776,7 +776,7 @@
         </div>
     </div>
 
-    <!-- Contact Terminal Modal -->
+    <!-- Contact Terminal -->
     <div id="contact-modal" class="qr-modal-container hidden" role="dialog" aria-labelledby="contact-title">
         <div class="terminal-container">
             <div class="terminal-header">
@@ -796,7 +796,7 @@
                 <div id="contact-terminal-content" class="terminal-content">
                     <p class="glow-text">Requesting contact portal...</p>
                 </div>
-                <!-- Interactive Input Line -->
+                <!-- Input -->
                 <div class="input-line">
                     <span class="prompt">guest@cognito:~$</span>
                     <span id="contact-input" class="terminal-input" contenteditable="true" spellcheck="false"

@@ -8,14 +8,14 @@ import { firebaseConfig } from "./firebase-config.js";
 
 // PWA
 if ('serviceWorker' in navigator) {
-    // Digital ID Card Logic
+    // ID Card
     function showIdCard(userData) {
         idCardName.textContent = userData.name || 'Student';
         idCardReg.textContent = userData.regNo || 'REG_HIDDEN';
         idCardCourse.textContent = userData.course || 'COGNITO_MEMBER';
         idCardPhoto.src = userData.photo || 'folder/placeholder.png';
 
-        // Generate QR for back side
+        // Back QR
         idCardQrContent.innerHTML = '';
         const qrData = JSON.stringify({
             n: userData.name,
@@ -35,7 +35,7 @@ if ('serviceWorker' in navigator) {
         idCardScene.classList.remove('is-flipped');
     }
 
-    // Initializers
+    // Init
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
             .then(reg => console.log('SW Registered', reg))
@@ -148,7 +148,7 @@ const qrTimerDisplay = document.getElementById('qr-timer');
 const qrStatus = document.getElementById('qr-status');
 const qrScanCountDisplay = document.getElementById('qr-scan-count');
 const configQrRefresh = document.getElementById('config-qr-refresh');
-// Status Bar Updates
+// UI Status
 function updateStatusBars() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
@@ -169,7 +169,7 @@ function updateStatusBars() {
 }
 setInterval(updateStatusBars, 1000);
 
-// Holographic Glitch Trigger
+// FX Glitch
 function triggerRandomGlitch() {
     const lines = document.querySelectorAll('.terminal-content div, .terminal-line');
     if (lines.length === 0) return;
@@ -188,7 +188,7 @@ function triggerRandomGlitch() {
 }
 setInterval(triggerRandomGlitch, 5000);
 
-// Matrix Rain Effect
+// FX Matrix
 function initMatrixRain(canvasId) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
@@ -213,7 +213,7 @@ function initMatrixRain(canvasId) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.fillStyle = '#00ff41'; // Matrix Green
+        ctx.fillStyle = '#00ff41';
         ctx.font = fontSize + 'px monospace';
 
         for (let i = 0; i < drops.length; i++) {
@@ -296,17 +296,17 @@ const btnCloseContact = document.getElementById('btn-close-contact');
 
 let confirmCallback = null;
 
-// HUD Animation State
+// HUD State
 let hudScanCycle = 0; // 0 to 1
 let hudScanDir = 1;
 let hudRotation = 0; // Continuous rotation for rings
 const lastSpoken = {};
 
-// Terminal State
+// Term State
 let terminalHistoryIndex = -1;
 const COMMANDS = ['help', 'about developer', 'why cognito', 'clear', 'mission', 'vision', 'privacy', 'history', 'features', 'faqs', 'documentation', 'cat about.txt', 'cat contact.txt', 'ls', 'whoami'];
 
-// Synthetic Audio Engine
+// Term Audio
 class TerminalAudio {
     constructor() {
         this.ctx = null;
@@ -338,7 +338,7 @@ class TerminalAudio {
 
     playLineStrike() {
         if (!this.enabled || !this.ctx) return;
-        const f = 400 + Math.random() * 100; // Deeper "thud/click"
+        const f = 400 + Math.random() * 100;
         this.playTone(f, 0.04, 'sine', 0.02);
     }
 
@@ -357,7 +357,7 @@ class TerminalAudio {
 
 const termAudio = new TerminalAudio();
 
-// Ambience Engine for Global Immersion
+// Ambience
 class AmbienceEngine {
     constructor() {
         this.ctx = null;
@@ -387,7 +387,7 @@ class AmbienceEngine {
         this.init();
         this.osc = this.ctx.createOscillator();
         this.osc.type = 'sawtooth';
-        this.osc.frequency.setValueAtTime(55, this.ctx.currentTime); // Low A hum
+        this.osc.frequency.setValueAtTime(55, this.ctx.currentTime);
 
         this.osc.connect(this.gain);
         this.gain.gain.linearRampToValueAtTime(0.02, this.ctx.currentTime + 2);
@@ -414,17 +414,17 @@ let configLeafletMap = null;
 let configMarker = null;
 let configRadiusCircle = null;
 
-// Device Detection for Performance
+// Performance
 const isMobile = /Android|webOS|iPhone|iPad|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const DETECTION_INTERVAL = isMobile ? 250 : 100;
 
 let hourlyChart = null;
 
-// Advanced Detection State
-const VALIDATION_THRESHOLD = 6; // Requires 6 frames of verification (Increased from 3 to prevent false positives)
+// Detection
+const VALIDATION_THRESHOLD = 6;
 const detectionHistory = {};
 
-// Set Live Date & Time
+// Clock
 function updateLiveDateTime() {
     const now = new Date();
     const options = { weekday: 'short', month: 'short', day: 'numeric' };
@@ -438,7 +438,6 @@ function speak(text, gender = 'male') {
 
     const synth = window.speechSynthesis;
 
-    // Create a new utterance
     const utterance = new SpeechSynthesisUtterance(text);
 
     const performSpeak = () => {
@@ -492,7 +491,7 @@ try {
     console.error("Firebase Init Error:", e);
 }
 
-// Portal Management
+// Portal
 
 function showView(viewId) {
     document.body.classList.add('glitch-active');
@@ -503,7 +502,7 @@ function showView(viewId) {
     if (target) target.classList.remove('hidden');
 }
 
-// Tab Switching
+// Tabs
 if (tabJoin) tabJoin.addEventListener('click', () => {
     tabJoin.classList.add('active');
     tabCreate.classList.remove('active');
@@ -683,11 +682,9 @@ async function startQRRotation() {
 
     await refreshQR();
 
-    // Remove automatic setInterval refresh
     // const intervalMs = parseInt(currentSpace.config.qrRefreshInterval || 30000);
     // qrInterval = setInterval(refreshQR, intervalMs);
 
-    // Listen for scan count updates
     const unsubscribeQr = onSnapshot(doc(db, COLL_SPACES, currentSpace.id), (doc) => {
         if (doc.exists()) {
             const data = doc.data();
@@ -695,7 +692,7 @@ async function startQRRotation() {
         }
     });
 
-    // ID Card Events
+    // ID Events
     btnCloseIdCard.addEventListener('click', () => {
         idCardModal.classList.add('hidden');
     });
@@ -712,8 +709,7 @@ async function startQRRotation() {
         }
     });
 
-    // Close logic
-    // Store unsubscribe to clean up later
+    // Close
     qrModal._unsubscribe = unsubscribeQr;
 }
 
@@ -754,7 +750,6 @@ btnExitWorkspace.addEventListener('click', () => {
     currentSpace = null;
     showView('view-portal');
 
-    // Reset mobile state if needed
     if (window.innerWidth <= 1024) {
         portalCard.classList.add('mobile-hidden');
         portalMobileStart.classList.remove('hidden');
@@ -762,7 +757,7 @@ btnExitWorkspace.addEventListener('click', () => {
     }
 });
 
-// Mobile Splash Transition
+// Splash
 if (btnPortalContinue) {
     btnPortalContinue.addEventListener('click', () => {
         portalMobileStart.classList.add('hidden');
@@ -772,11 +767,10 @@ if (btnPortalContinue) {
     });
 }
 
-// Mobile Sidebar Logic
+// Sidebar
 function toggleSidebar(show) {
     if (show) {
         mobileSidebar.classList.remove('hidden');
-        // Create overlay if not exists
         if (!document.querySelector('.mobile-overlay')) {
             const overlay = document.createElement('div');
             overlay.className = 'mobile-overlay';
@@ -793,21 +787,18 @@ function toggleSidebar(show) {
 if (btnMobileMenu) btnMobileMenu.addEventListener('click', () => toggleSidebar(true));
 if (btnCloseSidebar) btnCloseSidebar.addEventListener('click', () => toggleSidebar(false));
 
-// Sidebar Navigation
+// Nav
 sideNavItems.forEach(item => {
     item.addEventListener('click', () => {
         const mode = item.dataset.mode;
-        // Trigger the corresponding mode button click
         const targetBtn = document.getElementById(`btn-mode-${mode === 'attend' ? 'attend' : mode === 'reg' ? 'reg' : mode === 'analytics' ? 'analytics' : 'config'}`);
         if (targetBtn) targetBtn.click();
 
-        // Update active state in sidebar
         sideNavItems.forEach(i => i.classList.remove('active'));
         item.classList.add('active');
 
         toggleSidebar(false);
 
-        // On mobile, show the controls panel as an overlay when a mode is picked
         if (window.innerWidth <= 600) {
             const panel = document.querySelector('.controls-panel');
             if (panel) panel.classList.add('active');
@@ -830,11 +821,8 @@ if (sideBtnExport) sideBtnExport.addEventListener('click', () => {
     toggleSidebar(false);
 });
 
-// Close controls panel on mobile when clicking outside or specific toggle
-// We can add a "back" button to the panel later if needed, 
-// for now users can switch modes via sidebar to reset or we can add a close handle.
 
-// QR Modal Controls
+// QR Modal
 if (btnQrPresence) {
     btnQrPresence.addEventListener('click', () => {
         isAIPaused = true;
@@ -874,7 +862,6 @@ if (btnCloseContact) {
 
 
 async function typeText(element, text, speed = 10) {
-    // Regex for URLs, markdown links, and tags
     const combinedRegex = /(https?:\/\/[^\s]+|discord\.gg\/[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+|\[\[.*?\]\]|\{\{.*?\}\}|<<.*?>>|\(\(.*?\)\)|\*\*.*?\*\*|\[.*?\]\(.*?\))/g;
     const parts = text.split(combinedRegex);
     element.innerHTML = '';
@@ -904,7 +891,7 @@ async function typeText(element, text, speed = 10) {
                 await new Promise(r => setTimeout(r, speed));
             }
         } else if (part.startsWith('[') && part.includes('](') && part.endsWith(')')) {
-            // Markdown Link [text](url)
+            // MD Link
             const label = part.match(/\[(.*?)\]/)[1];
             const url = part.match(/\((.*?)\)/)[1];
 
@@ -996,12 +983,11 @@ async function bootTerminal(contentId) {
 }
 
 
-// Terminal System Logic
+// Term Logic
 async function processTerminalCommand(e, contentId) {
     const inputEl = e.target;
     const contentDiv = document.getElementById(contentId);
 
-    // Audio Init on first interaction
     termAudio.init();
 
     if (e.key === 'ArrowUp') {
@@ -1050,7 +1036,6 @@ async function processTerminalCommand(e, contentId) {
         if (!command) return;
 
         terminalHistoryIndex = -1;
-        // Add user command to history
         const historyLine = document.createElement('div');
         historyLine.className = 'terminal-line';
         historyLine.innerHTML = `<span class="prompt">guest@cognito:~$</span> <span class="command">${command}</span>`;
@@ -1060,7 +1045,7 @@ async function processTerminalCommand(e, contentId) {
             terminalHistory.push(command);
         }
 
-        // Show Loading State
+        // Loading
         const loadingLine = document.createElement('div');
         loadingLine.className = 'status-online';
         loadingLine.style.margin = '5px 0';
@@ -1163,7 +1148,6 @@ STATUS: Viewing Project Documentation`;
             termAudio.playError();
         }
 
-        // Remove loading state
         contentDiv.removeChild(loadingLine);
 
         const responseLine = document.createElement('div');
@@ -1200,7 +1184,7 @@ function placeCaretAtEnd(el) {
 }
 
 
-// Global Terminal Event Delegation
+// Term Events
 document.addEventListener('keydown', (e) => {
     if (e.target.classList.contains('terminal-input')) {
         const contentId = e.target.id === 'about-input' ? 'about-terminal-content' : 'contact-terminal-content';
@@ -1216,7 +1200,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Modal Triggers
+// Modals
 if (document.getElementById('btn-about')) {
     document.getElementById('btn-about').addEventListener('click', async () => {
         isAIPaused = true;
@@ -1274,7 +1258,7 @@ if (document.getElementById('btn-contact')) {
     });
 }
 
-// Window Controls Logic
+// Win Controls
 function setupTerminalControls(modalId, redId, yellowId, greenId, closeBtnId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
@@ -1300,17 +1284,16 @@ function setupTerminalControls(modalId, redId, yellowId, greenId, closeBtnId) {
     };
 }
 
-// Initialize Terminal Controls
+// Controls Init
 document.addEventListener('DOMContentLoaded', () => {
     setupTerminalControls('about-modal', 'btn-close-about-dot', 'btn-min-about', 'btn-max-about', 'btn-close-about');
     setupTerminalControls('contact-modal', 'btn-close-contact-dot', 'btn-min-contact', 'btn-max-contact', 'btn-close-contact');
 
-    // Tier 2: Matrix Rain
     initMatrixRain('about-terminal-bg');
     initMatrixRain('contact-terminal-bg');
 });
 
-// Close modals when clicking outside
+// Close Modals
 window.addEventListener('click', (e) => {
     if (e.target === aboutModal) {
         isAIPaused = false;
@@ -1342,7 +1325,7 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// Attendance Tab Switching
+// Tab Switching
 if (tabPresent && tabAbsent) {
     tabPresent.addEventListener('click', () => {
         activeAttendanceTab = 'present';
@@ -1358,7 +1341,7 @@ if (tabPresent && tabAbsent) {
     });
 }
 
-// History Modal Controls
+// History Modal
 if (btnHistory) {
     btnHistory.addEventListener('click', openHistoryModal);
 }
@@ -1396,8 +1379,6 @@ async function openHistoryModal() {
             const btn = document.createElement('button');
             btn.className = 'btn-date';
 
-            // Format date for display: "14 Jan 2026"
-            // Use manual split to avoid UTC shift issues with new Date(date)
             const parts = date.split('-');
             const d = new Date(parts[0], parts[1] - 1, parts[2]);
             const displayDate = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -1407,8 +1388,6 @@ async function openHistoryModal() {
             historyDateSelector.appendChild(btn);
         });
 
-        // Load most recent date by default as requested "dates first then list"
-        // But the user might want to see buttons first. I'll load the first one anyway for UX.
         if (dates.length > 0) {
             loadHistoryForDate(dates[0], historyDateSelector.firstChild);
         }
@@ -1420,7 +1399,6 @@ async function openHistoryModal() {
 
 async function loadHistoryForDate(date, btnElement) {
     currentHistoryDate = date;
-    // UI Update
     document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('active'));
     if (btnElement) btnElement.classList.add('active');
 
@@ -1438,7 +1416,6 @@ async function loadHistoryForDate(date, btnElement) {
         const records = [];
         snap.forEach(doc => records.push(doc.data()));
 
-        // Sort Alphabetically
         records.sort((a, b) => a.name.localeCompare(b.name));
         currentHistoryRecords = records;
 
@@ -1460,11 +1437,9 @@ function renderHistoryTable(records) {
         return;
     }
 
-    // Deduplicate for UI display: one person once
     const uniqueRecords = [];
     const seenNames = new Set();
 
-    // records are already sorted alphabetically by name
     records.forEach(r => {
         if (!seenNames.has(r.name)) {
             uniqueRecords.push(r);
@@ -1488,7 +1463,7 @@ function renderHistoryTable(records) {
     historyStatus.innerText = `Showing ${uniqueRecords.length} unique people.`;
 }
 
-// History Search
+// Search
 if (historySearchInput) {
     historySearchInput.addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
@@ -1501,13 +1476,12 @@ if (historySearchInput) {
     });
 }
 
-// History Export
+// Export
 if (btnExportHistory) {
     btnExportHistory.addEventListener('click', () => {
         if (currentHistoryRecords.length === 0) return;
 
         let csv = "Name,Registration Number,Course,Time\n";
-        // Export ALL activities as requested
         currentHistoryRecords.forEach(r => {
             const time = r.timestamp ? (r.timestamp.toDate ? r.timestamp.toDate() : new Date(r.timestamp)).toLocaleTimeString() : 'N/A';
             csv += `"${r.name}","${r.regNo || ''}","${r.course || ''}","${time}"\n`;
@@ -1549,7 +1523,6 @@ async function initSystem() {
     }
     console.log("Initializing Attendance SystemAI...");
 
-    // Start everything in parallel
     const modelsPromise = (async () => {
         let loaded = await loadModels(MODEL_URL);
         if (!loaded) {
@@ -1559,7 +1532,6 @@ async function initSystem() {
         return loaded;
     })();
 
-    // Initialize camera immediately
     const cameraPromise = startVideo();
 
     try {
@@ -1568,7 +1540,6 @@ async function initSystem() {
         if (modelsLoaded) {
             console.log("Models and Hardware ready.");
             isModelsLoaded = true;
-            // Reveal UI immediately when both are ready
             loadingOverlay.style.display = "none";
             const face3D = document.getElementById('face-3d-container');
             if (face3D) {
@@ -1586,7 +1557,6 @@ async function initSystem() {
         statusBadge.innerText = "Init Error";
         statusBadge.className = "status-badge status-error";
 
-        // Add a retry button to the UI if not already there
         if (!loadingOverlay.querySelector('.btn-retry')) {
             const retryBtn = document.createElement('button');
             retryBtn.innerText = "Retry Loading";
@@ -1634,10 +1604,8 @@ function startVideo() {
                 video.onloadedmetadata = () => {
                     video.play().then(() => {
                         console.log("Video playing.");
-                        // We don't hide loading overlay here anymore; initSystem handles complete ready state
                         resolve(true);
 
-                        // If models are already loaded, we can actually hide it
                         if (isModelsLoaded || !loadingOverlay.style.display || loadingOverlay.style.display === "none") {
                             loadingOverlay.style.display = "none";
                             const face3D = document.getElementById('face-3d-container');
@@ -1696,7 +1664,6 @@ function updateRegistrationForm() {
     const config = currentSpace.config || {};
     dynamicFieldsContainer.innerHTML = '';
 
-    // Always include Name
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.id = 'reg-name';
@@ -1704,7 +1671,6 @@ function updateRegistrationForm() {
     nameInput.setAttribute('aria-label', 'Full Name');
     dynamicFieldsContainer.appendChild(nameInput);
 
-    // Check for optional fields
     if (config.regNo) {
         const input = document.createElement('input');
         input.type = 'text';
@@ -1754,7 +1720,6 @@ function updateRegistrationForm() {
         dynamicFieldsContainer.appendChild(input);
     }
 
-    // Always include Gender for Voice Customization
     const genderContainer = document.createElement('div');
     genderContainer.style.display = 'flex';
     genderContainer.style.gap = '8px';
@@ -1794,7 +1759,6 @@ async function saveSpaceConfig() {
     const btnSave = document.getElementById('btn-save-config');
     const originalText = btnSave.innerText;
 
-    // UI Feedback
     btnSave.innerText = "Saving...";
     btnSave.disabled = true;
 
@@ -1826,7 +1790,6 @@ async function saveSpaceConfig() {
             qrRefreshInterval: configQrRefresh.value
         });
 
-        // Update local state
         currentSpace.config = { ...newConfig, examMode: examMode };
         currentSpace.config.qrRefreshInterval = configQrRefresh.value;
         currentSpace.geofencing = { enabled: geofenceEnabled, radius: geofenceRadius, center: lat && lng ? { lat, lng } : null };
@@ -1844,7 +1807,6 @@ async function saveSpaceConfig() {
 
 document.getElementById('btn-save-config').addEventListener('click', saveSpaceConfig);
 
-// Handle toggle inputs initial state when entering Settings mode
 function syncConfigToggles() {
     if (!currentSpace) return;
     const config = currentSpace.config || {};
@@ -1889,7 +1851,6 @@ function updateConfigMapPreview(lat, lng, radius, accuracy = null) {
             maxZoom: 19
         }).addTo(configLeafletMap);
 
-        // Apply Tactical Tint
         const mapEl = document.getElementById('config-map');
         mapEl.style.filter = 'brightness(0.6) contrast(1.2) sepia(100%) hue-rotate(140deg) saturate(3)';
     } else {
@@ -1899,7 +1860,6 @@ function updateConfigMapPreview(lat, lng, radius, accuracy = null) {
     if (configMarker) configLeafletMap.removeLayer(configMarker);
     if (configRadiusCircle) configLeafletMap.removeLayer(configRadiusCircle);
 
-    // Tactical Radar Pulse Marker
     const radarIcon = L.divIcon({
         className: 'custom-div-icon',
         html: `<div class="radar-pulse"></div>`,
@@ -1933,7 +1893,6 @@ function startDbListener() {
     if (!currentSpace) return;
     if (unsubscribeUsers) unsubscribeUsers();
 
-    // Clear previous detection data immediately to ensure isolation
     labeledDescriptors = [];
     faceMatcher = null;
     nameToDocId = {};
@@ -1957,7 +1916,6 @@ function startDbListener() {
             const uid = doc.id;
             tempAllData.push({ id: uid, ...data });
 
-            // Only load approved users for face matching
             if (data.name && data.descriptor && data.approved !== false) {
                 try {
                     const descFloat32 = new Float32Array(data.descriptor);
@@ -2003,7 +1961,6 @@ function startDbListener() {
             }
         });
 
-        // Add click delegation for opening profile from list items
         if (!todayListContainer._profileListenerAdded) {
             todayListContainer.addEventListener('click', (e) => {
                 const listItem = e.target.closest('.list-item');
@@ -2020,18 +1977,15 @@ function startDbListener() {
         allUsersData = tempAllData;
 
         if (labeledDescriptors.length > 0) {
-            faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.45); // Stricter match threshold (Decreased from 0.6)
+            faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.45);
         }
 
         todayCountDisplay.innerText = presentTodayCount;
         lastPresentHTML = presentAttendeesHTML;
         lastAbsentHTML = absentAttendeesHTML;
 
-        // Automatically update history if we are viewing today's records
         if (currentHistoryDate === localToday) {
-            // Filter allUsersData for today's records based on lastAttendance
             const todayRecords = tempAllData.filter(u => u.lastAttendance === todayStr);
-            // Sort by name as done in loadHistoryForDate
             todayRecords.sort((a, b) => a.name.localeCompare(b.name));
             currentHistoryRecords = todayRecords;
             renderHistoryTable(todayRecords);
@@ -2042,7 +1996,6 @@ function startDbListener() {
             if (btnExportHistoryPdf) btnExportHistoryPdf.style.display = showBtns;
         }
 
-        // Proactive check: Ensure today's date exists in historyDates if there's presence
         if (presentTodayCount > 0 && currentSpace) {
             const spaceRef = doc(db, COLL_SPACES, currentSpace.id);
             getDoc(spaceRef).then(snap => {
@@ -2056,7 +2009,6 @@ function startDbListener() {
             });
         }
 
-        // Run one-time sync for this session if not already done
         if (!currentSpace._historySynced) {
             syncHistoryDates();
             currentSpace._historySynced = true;
@@ -2113,7 +2065,6 @@ async function syncHistoryDates() {
         console.error("History Sync Failed:", err);
     }
 }
-// Add event delegation for manual marking
 if (!todayListContainer._listenerAdded) {
     todayListContainer.addEventListener('click', (e) => {
         const btnMark = e.target.closest('.btn-mark-present');
@@ -2155,7 +2106,6 @@ function showToast(message, type = 'success') {
     toast.innerText = message;
     toastContainer.appendChild(toast);
 
-    // Haptic Feedback for Mobile
     if (navigator.vibrate) {
         if (type === 'error') navigator.vibrate([100, 50, 100]);
         else navigator.vibrate(50);
@@ -2201,7 +2151,6 @@ if (peopleSearchInput) {
 async function renderPeopleManagement() {
     if (!peopleListContainer) return;
 
-    // Filter by search query
     const filteredUsers = allUsersData.filter(user =>
         user.name.toLowerCase().includes(peopleSearchQuery) ||
         (user.regNo && user.regNo.toLowerCase().includes(peopleSearchQuery))
@@ -2217,11 +2166,9 @@ async function renderPeopleManagement() {
 
     filteredUsers.sort((a, b) => a.name.localeCompare(b.name));
 
-    // Get total days of attendance recorded for this space to calculate percentage
     const spaceRef = doc(db, COLL_SPACES, currentSpace.id);
     const spaceSnap = await getDoc(spaceRef);
     const historyDates = spaceSnap.data().historyDates || {};
-    // Calculate max attendance among all users to normalize percentages
     const maxAttendance = Math.max(...allUsersData.map(u => u.attendanceCount || 0), 0);
     const denominator = maxAttendance || 1;
 
@@ -2279,10 +2226,8 @@ async function renderPeopleManagement() {
 
     peopleListContainer.appendChild(fragment);
 
-    // Add click event for details popup
     peopleListContainer.querySelectorAll('.management-person-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            // Don't open profile if clicking on buttons
             if (e.target.closest('button')) return;
 
             const avatar = card.querySelector('.student-avatar, .student-avatar-placeholder');
@@ -2327,7 +2272,6 @@ async function openProfileModal(uid) {
         const records = [];
         querySnapshot.forEach(doc => records.push(doc.data()));
 
-        // Sort by timestamp desc
         records.sort((a, b) => {
             const dateA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.date);
             const dateB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.date);
@@ -2359,7 +2303,6 @@ async function openProfileModal(uid) {
 
 if (btnCloseProfile) btnCloseProfile.onclick = () => profileModal.classList.add('hidden');
 
-// Close profile modal on outside click
 profileModal.addEventListener('click', (e) => {
     if (e.target === profileModal) profileModal.classList.add('hidden');
 });
@@ -2460,7 +2403,7 @@ function drawCustomFaceBox(ctx, box, label, isMatch, confidence, resultLabel) {
     drawCorner(x - padding, y + height + padding, 1, -1);
     drawCorner(x + width + padding, y + height + padding, -1, -1);
 
-    // Dynamic Data Rings (Rotating around the face)
+    // Data Rings
     const centerX = x + width / 2;
     const centerY = y + height / 2;
     const baseRadius = Math.max(width, height) / 2 + 30;
@@ -2474,7 +2417,7 @@ function drawCustomFaceBox(ctx, box, label, isMatch, confidence, resultLabel) {
         ctx.translate(centerX, centerY);
         ctx.setLineDash([5, 15]);
 
-        // Ring 1: Name
+        // Name Ring
         ctx.rotate(hudRotation);
         ctx.beginPath();
         ctx.arc(0, 0, baseRadius + 10, 0, Math.PI * 1.5);
@@ -2487,14 +2430,14 @@ function drawCustomFaceBox(ctx, box, label, isMatch, confidence, resultLabel) {
         ctx.fillStyle = color;
         ctx.fillText(label.toUpperCase(), baseRadius + 15, 0);
 
-        // Ring 2: ID
+        // ID Ring
         ctx.rotate(-hudRotation * 1.5);
         ctx.beginPath();
         ctx.arc(0, 0, baseRadius + 25, 0, Math.PI * 1.2);
         ctx.stroke();
         ctx.fillText(`ID: ${idNo}`, baseRadius + 30, 0);
 
-        // Ring 3: Dept
+        // Dept Ring
         ctx.rotate(hudRotation * 0.8);
         ctx.beginPath();
         ctx.arc(0, 0, baseRadius + 40, 0, Math.PI * 1.8);
@@ -2506,7 +2449,7 @@ function drawCustomFaceBox(ctx, box, label, isMatch, confidence, resultLabel) {
         ctx.globalAlpha = 1.0;
     }
 
-    // Biometric Barcode (Right Side)
+    // Barcode
     if (isMatch || isUnknown) {
         const barcodeX = x + width + padding + 40;
         const barcodeY = y;
@@ -2524,7 +2467,7 @@ function drawCustomFaceBox(ctx, box, label, isMatch, confidence, resultLabel) {
             ctx.fillRect(0, i, bWidth, 2);
         }
 
-        // Vertical Rotating Bio-Tag
+        // Bio-Tag
         ctx.rotate(Math.PI / 2);
         ctx.font = '900 9px monospace';
         ctx.fillStyle = color;
@@ -2534,7 +2477,6 @@ function drawCustomFaceBox(ctx, box, label, isMatch, confidence, resultLabel) {
         ctx.restore();
     }
 
-    // Status Pill implementation remains...
     if (isMatch || isUnknown) {
         ctx.font = '900 13px Inter';
         const statusText = isMatch ? `${label.toUpperCase()} [${confidence}%]` : 'UNKNOWN_ACCESS_DENIED';
@@ -2544,7 +2486,6 @@ function drawCustomFaceBox(ctx, box, label, isMatch, confidence, resultLabel) {
         const pillX = x + (width / 2) - (pillWidth / 2);
         const pillY = y - padding - pillHeight - 5;
 
-        // Dark Green for matches, original color (red) for unknown
         const bgColor = isMatch ? '#064e3b' : color;
         const textColor = isMatch ? '#fff' : '#000';
 
@@ -2718,7 +2659,6 @@ video.addEventListener('play', () => {
                 wasFaceDetected = false;
                 if (scanIndicator) scanIndicator.style.display = 'none';
 
-                // Slowly decay history only when nothing is detected to keep it stable
                 for (let k in detectionHistory) {
                     detectionHistory[k] = Math.max(0, detectionHistory[k] - 0.5);
                 }
@@ -2743,7 +2683,7 @@ video.addEventListener('play', () => {
         }
         hudScanCycle += hudScanDir * (isMobile ? 0.02 : 0.04);
         if (hudScanCycle > 1 || hudScanCycle < 0) hudScanDir *= -1;
-        hudRotation += 0.02; // Increment HUD rotation
+        hudRotation += 0.02;
 
         if (window.lastDetections && window.lastDetections.length > 0) {
             window.lastDetections.forEach((detection, i) => {
@@ -3107,7 +3047,7 @@ if (btnExportPdf) btnExportPdf.addEventListener('click', exportToPDF);
 const btnExportHistoryPdf = document.getElementById('btn-export-history-pdf');
 if (btnExportHistoryPdf) btnExportHistoryPdf.addEventListener('click', exportHistoryToPDF);
 
-// Magic Link Event Listeners
+// Magic Link
 const btnGenerateMagic = document.getElementById('btn-generate-magic');
 const btnProjectMagic = document.getElementById('btn-project-magic');
 const magicLinkContainer = document.getElementById('magic-link-container');
@@ -3211,7 +3151,6 @@ window.addEventListener('load', async () => {
 function setMode(mode) {
     currentMode = mode;
 
-    // UI elements update
     [regForm, attendInfo, configForm, analyticsPanel].forEach(el => el && el.classList.add('hidden'));
     [
         document.getElementById('btn-mode-attend'),
@@ -3252,7 +3191,6 @@ function addLiveLogEntry(name, time) {
         <span class="log-success">seen @ ${time}</span>
     `;
     liveLogsContainer.prepend(div);
-    // Limit log entries to 50 for performance
     if (liveLogsContainer.children.length > 50) {
         liveLogsContainer.removeChild(liveLogsContainer.lastChild);
     }
@@ -3267,14 +3205,12 @@ async function exportToExcel() {
     try {
         showToast("Generating Master Report...", "info");
 
-        // 1. Fetch all attendance records for this space
         const attendQuery = query(
             collection(db, COLL_ATTENDANCE),
             where("spaceId", "==", currentSpace.id)
         );
         const attendSnap = await getDocs(attendQuery);
 
-        // 2. Map data: userId -> date -> time
         const attendanceMap = {};
         const uniqueDates = new Set();
         const dateTotals = {};
@@ -3295,11 +3231,9 @@ async function exportToExcel() {
         const sortedDates = Array.from(uniqueDates).sort();
         const totalDatesCount = sortedDates.length;
 
-        // 3. Build CSV Header
         const headers = ["Name", "Reg No", "Course", "Phone", "Days Present", "Attendance %", ...sortedDates];
         let csvContent = headers.map(h => `"${h}"`).join(",") + "\n";
 
-        // 4. Build CSV Rows (Students - Sorted Alphabetically)
         const sortedUsers = [...allUsersData].sort((a, b) => {
             const nameA = (a.name || '').toLowerCase();
             const nameB = (b.name || '').toLowerCase();
@@ -3326,14 +3260,12 @@ async function exportToExcel() {
             csvContent += row.map(cell => `"${cell}"`).join(",") + "\n";
         });
 
-        // Summary
         const summaryRow = ["DAILY TOTALS", "", "", "", "", ""];
         sortedDates.forEach(date => {
             summaryRow.push(dateTotals[date] || 0);
         });
         csvContent += summaryRow.map(cell => `"${cell}"`).join(",") + "\n";
 
-        // 6. Trigger Download as .csv (Excel compatible)
         const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -3357,14 +3289,12 @@ async function exportToPDF() {
     try {
         showToast("Generating Master PDF Report...", "info");
 
-        // 1. Fetch all attendance records
         const attendQuery = query(
             collection(db, COLL_ATTENDANCE),
             where("spaceId", "==", currentSpace.id)
         );
         const attendSnap = await getDocs(attendQuery);
 
-        // 2. Map data
         const attendanceMap = {};
         const uniqueDates = new Set();
         attendSnap.forEach(snap => {
@@ -3378,14 +3308,12 @@ async function exportToPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4'); // Landscape for more space
 
-        // 3. Document Setup
         doc.setFontSize(20);
         doc.text("CognitoAttend Master Report", 14, 22);
         doc.setFontSize(10);
         doc.text(`Workspace: ${currentSpace.name}`, 14, 30);
         doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 36);
 
-        // Table
         const tableHeaders = ["Name", "Reg No", "Course", "Present", "Pct", ...sortedDates.map(d => d.split('-').slice(1).reverse().join('/'))];
         const tableData = [];
 
@@ -3499,7 +3427,6 @@ function init3DFace(containerId) {
     for (let i = 0; i < positionAttribute.count; i++) {
         vertex.fromBufferAttribute(positionAttribute, i);
 
-        // Advanced Shaping
         let x = vertex.x; let y = vertex.y; let z = vertex.z;
 
         y *= 1.35; // Height
@@ -3511,17 +3438,14 @@ function init3DFace(containerId) {
             z *= taper * 0.8;
         }
 
-        // Eye Sockets (Simplified)
         if (y > 0.3 && y < 0.8 && Math.abs(x) > 0.4 && z > 1.5) {
             z -= 0.2;
         }
 
-        // Nose Bridge
         if (y > -0.2 && y < 0.6 && Math.abs(x) < 0.3 && z > 1.8) {
             z += 0.25;
         }
 
-        // Mouth area
         if (y > -1.0 && y < -0.5 && Math.abs(x) < 0.6 && z > 1.7) {
             z += 0.1;
         }
@@ -3549,7 +3473,6 @@ function init3DFace(containerId) {
         pointsArray.push(new THREE.Vector3().fromBufferAttribute(positionAttribute, i));
     }
 
-    // Connect nearby vertices
     for (let i = 0; i < pointsArray.length; i++) {
         for (let j = i + 1; j < pointsArray.length; j++) {
             const dist = pointsArray[i].distanceTo(pointsArray[j]);
@@ -3591,7 +3514,6 @@ function init3DFace(containerId) {
         const orbitGroup = new THREE.Group();
         orbitGroup.add(orbitLine);
 
-        // Add tiny nodes on orbit
         const nodeGeo = new THREE.SphereGeometry(0.04, 8, 8);
         const nodeMat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.6 });
         const node = new THREE.Mesh(nodeGeo, nodeMat);
@@ -3642,7 +3564,6 @@ function init3DFace(containerId) {
             o.group.rotation.x += o.speed * 0.5;
         });
 
-        // Rotate background
         bgPoints.rotation.y += 0.0005;
 
         renderer3D.render(scene3D, camera3D);
@@ -3650,9 +3571,6 @@ function init3DFace(containerId) {
     animate();
 
     const statusEl = document.getElementById('guide-status-text');
-    if (statusEl && containerId === 'portal-guide-container') {
-        // Portal guide status log logic removed
-    }
 
     window.addEventListener('resize', () => {
         if (!container.offsetWidth) return;
@@ -3661,9 +3579,9 @@ function init3DFace(containerId) {
         renderer3D.setSize(container.offsetWidth, container.offsetHeight);
     });
 }
-// Dynamic Glow Trail
+// Glow Trail
 document.addEventListener('mousemove', (e) => {
-    if (Math.random() > 0.15) return; // Rate limiting
+    if (Math.random() > 0.15) return;
     const p = document.createElement('div');
     p.className = 'mouse-trail-particle';
     p.style.left = e.clientX + 'px';
