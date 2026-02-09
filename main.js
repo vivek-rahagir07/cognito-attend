@@ -892,7 +892,7 @@ async function typeText(element, text, speed = 20) {
             link.style.borderBottom = '1px dashed var(--accent)';
 
             if (part.toLowerCase().endsWith('.pdf') || part.toLowerCase().endsWith('.zip')) {
-                link.setAttribute('download', '');
+                link.setAttribute('download', 'CognitoAttend_Documentation.pdf');
             }
 
             for (let char of part) {
@@ -917,7 +917,7 @@ async function typeText(element, text, speed = 20) {
             link.style.borderBottom = '1px dashed var(--accent)';
 
             if (url.toLowerCase().endsWith('.pdf') || url.toLowerCase().endsWith('.zip')) {
-                link.setAttribute('download', '');
+                link.setAttribute('download', 'CognitoAttend_Documentation.pdf');
             }
 
             for (let char of label) {
