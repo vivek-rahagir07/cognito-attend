@@ -1133,10 +1133,15 @@ STATUS: Viewing Project Documentation`;
             responseText = "OPENING_SYSTEM_DOCS: [[CognitoAttend Documentation v1.0]]\nLaunching document viewer...\n\n(If it didn't open, please check your popup blocker.)";
         } else if (command === 'about developer') {
             try {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'developer-photo-wrapper';
+
                 const img = document.createElement('img');
                 img.src = 'folder/image.png';
                 img.className = 'developer-photo';
-                contentDiv.appendChild(img);
+
+                wrapper.appendChild(img);
+                contentDiv.appendChild(wrapper);
 
                 const res = await fetch('about/developer.txt');
                 responseText = await res.text();
